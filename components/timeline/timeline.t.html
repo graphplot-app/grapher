@@ -1,7 +1,7 @@
 <input type="text" ng-model="title">
 <input type="date" ng-model="start">
 <input type="date" ng-model="end">
-<button id="enter">Enter</button>
+<button id="enter" ng-click="$ctrl.add()">Enter</button>
 
 <ul>
   <li ng-repeat="e in events">{{e.title}}</li>

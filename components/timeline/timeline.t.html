@@ -1,0 +1,13 @@
+<input type="text" ng-model="title">
+<input type="date" ng-model="start">
+<input type="date" ng-model="end">
+<button id="enter">Enter</button>
+
+<ul>
+  <li ng-repeat="e in events">{{e.title}}</li>
+</ul>
+
+<div id="timeline-container">
+  <div id="timeline">
+  </div>
+</div>

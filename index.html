@@ -1,0 +1,49 @@
+<!doctype html>
+<html ng-app="SocialCartographyApp">
+  <head>
+    <meta charset="utf8">
+    <title>Social Cartography</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/vis-timeline-graph2d.min.css">
+    <link rel="stylesheet" href="css/index.css">
+
+    <!-- Social Cartography -->
+    <script type="text/javascript" src="js/r90.three.min.js"></script>
+    <script type="text/javascript" src="js/OrbitControls.js"></script>
+    <script type="text/javascript" src="js/THREEx.WindowResize.js"></script> 
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="js/fourd.js"></script>
+    <script type="text/javascript" src="js/jquery.fourd.js"></script>
+    <script type="text/javascript" src="js/jquery.social-cartography.js"></script>
+    <script type="text/javascript" src="js/download2.js"></script>
+    <script type="text/javascript" src="js/vis.min.js"></script>
+    <script type="text/javascript" src="js/vis-timeline-graph2d.min.js"></script>
+    <script type="text/javascript" src="bower_components/moment/moment.js"></script>
+
+    <!-- AngularJS -->
+    <script type="text/javascript" src="js/angular.min.js"></script>
+    <script type="text/javascript" src="js/angular-route.min.js"></script>s
+    <script type="text/javascript" src="js/SocialCartography.js"></script>
+    <script type="text/javascript" src="js/SocialCartography.config.js"></script>
+    <script type="text/javascript" src="components/introduction/intro.component.js"></script>
+    <script type="text/javascript" src="components/timeline/timeline.component.js"></script>
+    
+
+  </head>
+  <body>
+    <header>
+      <h1>Social Cartography</h1>
+      <ul>
+        <li><a href="#!/introduction">introduction</a></li>
+        <li><a href="#!/timeline">timeline</a></li>
+      </ul>
+    </header>
+
+    <div ng-view></div>
+
+    <footer>
+      <a href="mailto:moore.joshua@pm.me">Joshua M. Moore</a>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+#timeline-container {
+	position: absolute; 
+	bottom: 20px;
+	left: 20px; 
+	right: 20px;
+	/*
+	color: black;
+	background-color: 0x483D8B;
+	opacity: 0.5;
+	*/
+}

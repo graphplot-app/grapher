@@ -13,10 +13,5 @@ angular
       .when('/timeline', {
         template: '<timeline></timeline>',
       })
-      /*
-      .when('/graph', {
-        template: '<social-cartography></social-cartography>'
-      })
-      */
-      .otherwise('/intro');
+      .otherwise('/introduction');
   }]);

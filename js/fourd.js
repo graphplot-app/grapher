@@ -1,17 +1,9 @@
 'use strict';
+
 /*
  four-d.js
  Joshua M. Moore
  April 23, 2015
- depends on: mrdoob's three.js, rev66
- https://github.com/mrdoob/three.js/tree/r66
- tested with r66
- 
- This is semantic version v0.1.0.
- See http://semver.org/
- 
- The API works as follows:
- Every function or code block marked api is part of the API.
  
  Here's how it works:
  
@@ -20,42 +12,24 @@
  
  var vertex_options = {
    cube: {
-     width: 5, 
-     height: 5,
-     depth: 5,
-     color: 0x000000 // or: texture: 'path_to.png'
-     offset: Offset('bottom', 0) // optional
+     size: 10,
+    texture: 'path_to,png'
    },
    label: {
-		 size: 
-     text: 
+     text: 'Hello, World'
    }
- }
- 
- // or:
- 
- var vertex_options = {
-   size: 10,
-   texture: 'path_to,png'
- }
- 
- // or:
- 
- // leave out vertex options altogether.
- // default values will be used.
- 
+ };
  
  var vertex1 = fourd.graph.add_vertex(vertex_options); // add a vertex
  var vertex2 = fourd.graph.add_vertex(vertex_options); // add another vertex
  
- var edge_options = {}; // currently not defined, but this is how you would pass them.
+ var edge_options = {directed: false}; // currently not defined, but this is how you would pass them.
  
  var edge = fourd.graph.add_edge(vertex1, vertex2, edge_options);
  
  fourd.graph.remove_edge(edge); // this is why you keep those variables
  fourd.graph.remove_vertex(vertex1);
  fourd.graph.remove_vertex(vertex2);
- 
 */
 
 var FourD = function(){
@@ -76,14 +50,9 @@ var FourD = function(){
       epsilon: 0.1
     }
   };
-  
-  var is_vertex = function(potential){
-    return true;
-		/*potential.hasOwnProperty('id') && 
-      potential.hasOwnProperty('edge_count') && 
-      potential.hasOwnProperty('edges');
-			*/
-  };
+
+  this.changed = false;
+  var fourd = this;
 
   /* 
     Vertex
@@ -112,8 +81,6 @@ var FourD = function(){
 
     this.edge_count = 0;
     this.edges = {};
-
-    this.texture = null;
     
     if(!this.options.hasOwnProperty('label')){
       this.options.label = {
@@ -124,36 +91,53 @@ var FourD = function(){
     };
   };
 
-  var getPicture = function(options){
-    var canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
-    var fontSize = options.size || 100;
-    context.font = fontSize + "px Consolas";
-    var measurements = context.measureText(options.text);
-    //canvas.width = measurements.width + 10;
-    //canvas.height = fontSize + 2;
-    context.height = fontSize;
-		context.width = measurements.width;
-    context.fillText(options.text, 0, fontSize);
-    
-    return canvas;
-  };
-
   var Label = function(options){
+    options = Object.assign({offset: 0}, options);
+    
     // thanks, https://codepen.io/dxinteractive/pen/reNpOR
     var _createTextLabel = function() {
-      var div = document.createElement('label');
+      var div = document.createElement('div');
       document.body.appendChild(div);
       div.className = 'text-label';
       div.style.position = 'absolute';
-      div.style.width = 100;
-      div.style.height = 100;
+      div.style.width = 'min-content';
+      div.style.height = 'min-content';
       div.innerHTML = options.text;
-      div.style.top = -1000;
-      div.style.left = -1000;
+      div.style.top = 0;
+      div.style.left = 0;
       
+      /*
+        div.on click:
+          place text of div into value of textbox
+          turn div into textbox
+          on blur:
+            turn textbox into div
+            place value of textbox into text of div and name of selected entity
+        turn div into link.
+      */
+
+      // div on click
+      $(div).on('dblclick', () => {
+        var name = $('div').html();
+        var input = $(`<textarea id="edit-input" value="${name}" draggable="draggable" resizeable="resizeable" />`).appendTo('html > body').get(0);
+        input
+        input.style.position = 'absolute';
+        input.style.left = div.style.left;
+        input.style.top = div.style.top;
+        
+        $(input).on('blur', function(){
+          var value = JSON.parse($(input).val());
+          $(options.vertex.label.element).clear();
+
+          if(value){
+
+          }
+        })
+
+        console.log('input', input)
+      });
+
       var _this = this;
- 
       var label = {
         element: div,
         parent: options.object,
@@ -169,8 +153,25 @@ var FourD = function(){
         },
         get2DCoords: function(position, camera) {
           var vector = position.project(camera);
+          var rect = document.querySelector('canvas').getBoundingClientRect();
+          
+          /*
+          vector.x = (vector.x + 1)/2 * (rect.right - rect.left);
+          vector.y = (vector.y - 1)/2 * (rect.bottom - rect.top) + rect.top;
+          */
+          /*
           vector.x = (vector.x + 1)/2 * window.innerWidth;
           vector.y = -(vector.y - 1)/2 * window.innerHeight + options.offset;
+          */
+
+          vector.x = ((vector.x + 1)/2 * (rect.right - rect.left)) + rect.left;
+          vector.y = (-(vector.y - 1)/2 * (rect.bottom - rect.top)) + rect.top;
+
+          if(vector.x < rect.left) vector.x = rect.left;
+          if(vector.x > rect.right) vector.x = rect.right - this.element.offsetWidth;
+          if(vector.y < rect.top) vector.y = rect.top;
+          if(vector.y > rect.bottom) vector.y = rect.bottom - this.element.offsetHeight;
+
           return vector;
         },
         remove: () => {
@@ -216,39 +217,19 @@ var FourD = function(){
     }
 
     if(this.options.cube){
-      this.cube = new Cube(this.options.cube);
-      this.texture = this.options.cube.texture;
-      this.color = this.options.cube.color;
-      
-			this.cube.geometry.computeFaceNormals();
-      this.object.add(this.cube);
-      this.cube.position.set(0, 0, 0);
-			this.cube.vertex = this;
+      var cube = new Cube(this.options.cube);
+			cube.geometry.computeFaceNormals();
+      this.object.add(cube);
+      cube.position.set(0, 0, 0);
+			cube.vertex = this;
     }
     if(this.options.label && this.options.label.text){
       this.options.label.object = this.object;
       this.options.label.vertex = this;
-      this.label = new Label(this.options.label);
-      this.label.element.vertex = this;
-      this.label.element.id = `vertex-label-${this.id}`;
+      var label = new Label(this.options.label);
     }
     
     scene.add(this.object);
-  };
-
-  Vertex.prototype.set = function(options){
-    if(options.color !== undefined){
-      this.cube.material.color = options.color;
-      this.cube.material.needsUpdate = true;
-    }
-    if(options.texture !== undefined){
-      this.cube.material.map = new THREE.TextureLoader().load( options.texture );
-      this.cube.material.needsUpdate = true;
-      this.texture = options.texture;
-    }
-    if(options.text !== undefined){
-      this.label.element.innerHTML = options.text;
-    }
   };
   
   /* 
@@ -261,6 +242,20 @@ var FourD = function(){
       this.label.remove();
     }
     this.object.remove(name);
+  }
+  
+  Vertex.prototype.replace_cube = function(options){
+    this.options = options;
+    scene.remove(this.object);
+    this.paint(scene);
+    for(var i=0; i<this.edges.length; i++){
+      scene.remove(this.edges[i].object);
+      if(this.edges[i].source == this){
+        this.edges[i].object = line(scene, this, this.edges[i].target, this.edges[i].options);
+      }else{
+        this.edges[i].object = line(scene, this.edges[i].source, this, this.edges[i].options)
+      }
+    }
   }
 
   var CameraVertex = function(id, camera){
@@ -277,18 +272,6 @@ var FourD = function(){
     
     if(arguments.length < 3){
       throw new Error('Edge without sufficent arguments');
-    }
-
-    if(!is_vertex(source)){
-      var source_type = typeof source;
-      var source_error_msg = 'Source should be a Vertex instead of a ' + source_type + '.';
-      throw new Error(src_error_msg);
-    }
-
-    if(!is_vertex(target)){
-      var target_type = typeof target;
-      var target_error_msg = 'Target should be a Vertex instead of a ' + target_type + '.';
-      throw new Error(tgt_error_msg);
     }
 
     this.id = id;
@@ -334,6 +317,8 @@ var FourD = function(){
   var Graph = function(scene){
     this.scene = scene;
     this.type = 'Graph';
+    this.fourd = fourd;
+
     this.vertex_id_spawn = 0;
     this.V = {};
 
@@ -355,6 +340,8 @@ var FourD = function(){
       scene.remove(this.V[v].object);
       // this.V[v].destroy();
     }
+
+    this.temperature = 0.00;
     
     this.V = {};
     this.E = {};
@@ -375,7 +362,7 @@ var FourD = function(){
     v.paint(this.scene);
     this.V[v.id] = v;
     v.object.vertex = v;
-    
+    this.changed = true;
     return v;
   };
 
@@ -407,6 +394,8 @@ var FourD = function(){
     }
     
     edge.paint(this.scene);
+
+    this.changed = true;
     return edge;
   };
 	
@@ -416,8 +405,13 @@ var FourD = function(){
 
   // api
   Graph.prototype.remove_edge = function(edge){
-    edge.destroy();
-    delete this.E[edge.id];
+    var key = this._make_key(edge.source, edge.target);
+    if(--this.edge_counts[key] === 0){
+      edge.destroy();
+      delete this.E[edge.id];
+    }
+
+    this.changed = true;
   };
 
   Graph.prototype.toString = function(){
@@ -443,6 +437,8 @@ var FourD = function(){
     
     this.scene.remove(vertex.object);
     delete this.V[vertex.id];
+
+    this.changed = true;
   };
 
   var is_graph = function(potential){
@@ -534,6 +530,7 @@ var FourD = function(){
     this.outers = {};
     this.center_sum = new THREE.Vector3(0, 0, 0);
     this.center_count = 0;
+    this.temperature = 0.00;
   };
 
   BHN3.prototype.constants = CONSTANTS.BHN3;
@@ -582,6 +579,8 @@ var FourD = function(){
             vertex.object.position.clone(),
             this.inners[i].object.position.clone()
           );
+
+          this.temperature += individual_force.lengthSq();
 	  
           force.add(individual_force);
         }
@@ -589,11 +588,13 @@ var FourD = function(){
     }else{
       var sumstimate = force_fn(vertex.object.position, this.center());
       sumstimate.multiplyScalar(this.center_count);
+      this.temperature += sumstimate.lengthSq();
       force.add(sumstimate);
     }
     
     for(var octant in this.outers){
       this.outers[octant].estimate(vertex, force, force_fn);
+      this.temperature += this.outers[octant].temperature;
     }
   };
 
@@ -643,7 +644,7 @@ var FourD = function(){
       vertex.acceleration = new THREE.Vector3(0.0, 0.0, 0.0);
       vertex.repulsion_forces = new THREE.Vector3(0.0, 0.0, 0.0);
       vertex.attraction_forces = new THREE.Vector3(0.0, 0.0, 0.0);
-
+      
       tree.insert(vertex);
     }
     
@@ -658,7 +659,6 @@ var FourD = function(){
     }
     
     // calculate attractions
-    
     for(e in this.E){
       edge = this.E[e];
       
@@ -669,14 +669,14 @@ var FourD = function(){
 
       // attraction.multiplyScalar(edge.options.strength);
 
-      edge.source.attraction_forces.sub(attraction);
-      edge.target.attraction_forces.add(attraction);
-
       if(edge.options.directed){
         var distance = edge.object.geometry.vertices[0].distanceTo(edge.object.geometry.vertices[1]);
         var gravity = new THREE.Vector3(0.0, CONSTANTS.gravity/distance, 0.0);
         attraction.add(gravity);
       }
+      
+      edge.source.attraction_forces.sub(attraction);
+      edge.target.attraction_forces.add(attraction);
     }
     
     for(v in this.V){
@@ -707,12 +707,13 @@ var FourD = function(){
       }
     }
 
+    this.temperature = tree.temperature;
     this.center = tree.center();
   };
 	
 	Graph.prototype.add_cycle = function(vertex_options){
 		var vertices = [];
-		var edges = [];
+		var edgaes = [];
 		for(var i=0; i<vertex_options.length; i++){
 			vertices.push(this.add_vertex(vertex_options[i]));
 			if(i>0){
@@ -778,7 +779,7 @@ var FourD = function(){
       
   var old_intersects,
       old_color;
-	var that = this;
+  var that = this;
   var render = function render(){
     requestAnimationFrame(render);
 
@@ -798,6 +799,7 @@ var FourD = function(){
     }
     
     renderer.render(scene, camera);
+    // graph.fourd.changed = false;
   };
 
   var clear = function clear(){
@@ -866,8 +868,9 @@ var FourD = function(){
     camera.position.z = -250;
     camera.lookAt(new THREE.Vector3(0, 0, 0));
     
-    THREEx.WindowResize(renderer, camera);
-
+    if(options.resize){
+      options.resize = THREEx.WindowResize(renderer, camera);
+    }
     clock = new THREE.Clock();
     controls = new THREE.OrbitControls( camera, renderer.domElement );
     controls.update(clock.getDelta()); 

@@ -16,8 +16,8 @@
     options: {
       background: 0x004477,
       border: '1px solid black',
-      width: document.innerWidth,
-      height: document.innerHeight
+      width: window.innerWidth,
+      height: window.innerHeight
     },
 
     _create: function(){

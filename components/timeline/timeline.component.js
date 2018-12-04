@@ -3,44 +3,28 @@ angular
   .component('timeline', {
     templateUrl: 'components/timeline/timeline.t.html',
     controller: ['$scope', function TimelineCtrl($scope){
-      function repeat(){
-        $scope.date = new Date();
-        window.requestAnimationFrame(repeat);
-      }
 
-      repeat();
+      $('#display').fourd({width: 1000, height: 500, background: 0xffffff});
+      this.fourd = $('#display').fourd('underlying_object');
 
-      var events = [
-        {
-          content: 'Hello, Worlds!',
-          start: '2018-12-01',
-          end: '2018-12-02'
-        }
-      ];
+      $scope.events = [];
 
-      this.data = new vis.DataSet(events);
+      this.data_set = new vis.DataSet($scope.events);
+      this.data = this.data_set.get();
       this.add = () => {
-        this.data.add({
-          'content': $scope.title,
-          'start': $scope.start,
-          'end': $scope.end
-        });
 
-        $scope.title = '';
-        $scope.start = null;
-        $scope.end = null;
+        var obj = {
+          'start': $scope.date,
+          'content': $scope.content
+        };
+        this.data_set.add(obj);
+        obj.vertex = this.fourd.graph.add_vertex({cube: {
+          size: 10,
+          color: 0x0000000
+        }, label: {text: $scope.event}});
 
-        console.log('done')
+        this.data = this.data_set.get();
       };
 
-      timeline = new vis.Timeline(document.querySelector('#timeline-container'), this.data, {
-        /*
-        maxHeight: 300,
-        minHeight: 300,
-        zoomable: false,
-        horizontalScroll: true,
-        start: new Date((new Date()).valueOf() - 1000*60*60*3),
-        end: new Date(1000*60*60*24 + (new Date()).valueOf())
-        */
-      });
+      this.timeline = new vis.Timeline(document.querySelector('#timeline-container'), this.data, {type: 'point'});
     }]});

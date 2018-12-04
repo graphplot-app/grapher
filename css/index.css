@@ -9,3 +9,69 @@
 	opacity: 0.5;
 	*/
 }
+
+body {
+  margin: 20px;
+}
+
+header {
+  background-color: #004477;
+  color: white;
+}
+
+h1 {
+  float: left;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+
+ul.menu {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+ul.menu > li {
+  float: left;
+}
+
+ul.menu > li > a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 16px;
+  text-decoration: none;
+}
+
+ul.menu > li > a:hover {
+  background-color: black;
+}
+
+
+
+#display {
+  border: 1px solid #bfbfbf;
+  width: 100%;
+}
+
+.shadow {
+  box-shadow: inset 0 0 10px #000000;
+}
+
+.fl {
+  float: left;
+}
+
+.box {
+  display: flex;
+}
+
+.down {
+  flex-direction: column;
+}
+
+#content {
+  margin: 30%;
+}

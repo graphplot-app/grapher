@@ -1,4 +1,4 @@
 'use strict';
 
 angular
-  .module('SocialCartographyApp', ['ngRoute', 'Introduction', 'Timeline']);
+  .module('SocialCartographyApp', ['Timeline', 'Person']);

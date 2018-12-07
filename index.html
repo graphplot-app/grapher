@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf8">
     <title>Social Cartography</title>
-    <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/vis-timeline-graph2d.min.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/index.css">
 
     <!-- Social Cartography -->
@@ -20,24 +20,41 @@
     <script type="text/javascript" src="js/vis.min.js"></script>
     <script type="text/javascript" src="js/vis-timeline-graph2d.min.js"></script>
     <script type="text/javascript" src="bower_components/moment/moment.js"></script>
+    <script type="text/javascript" src="js/compromise.min.js"></script>
+    <script type="text/javascript" src="bower_components/moment/min/moment-with-locales.min.js"></script>
 
     <!-- AngularJS -->
     <script type="text/javascript" src="js/angular.min.js"></script>
-    <script type="text/javascript" src="js/angular-route.min.js"></script>
     <script type="text/javascript" src="js/SocialCartography.js"></script>
-    <script type="text/javascript" src="js/SocialCartography.config.js"></script>
-    <script type="text/javascript" src="components/introduction/intro.component.js"></script>
     <script type="text/javascript" src="components/timeline/timeline.component.js"></script>
+    <script type="text/javascript" src="components/person/person.component.js"></script>
+    <script type="text/javascript" src="components/index/index.js"></script>
   </head>
-  <body>
-    <header class="">
-      <h1 class="d-inline">Social Cartography</h1>
-      <ul class="menu d-block">
-        <li><a href="#!/introduction">introduction</a></li>
-        <li><a href="#!/timeline">timeline</a></li>
-      </ul>
-    </header>
+  <body ng-controller="IndexCtrl" ng-init="$rootScope.show_person = false">
+    <div id="main" ng-class="{'display-main': !$rootScope.show_person, 'display-person': $rootScope.show_person}">
+      <header>
+        <h1 class="d-inline">Social Cartography</h1>
+      </header>
 
-    <div ng-view class="content"></div>
+      <nav id="sidebar">
+        <ul class="list-unstyled" ng-inti="show_person_menu = false;">
+          <li><input href="#person-menu" type="image" src="img/person.white.png" ng-click="show_person_menu = !show_person_menu"></li>
+          <li ng-if="show_person_menu"><input type="image" src="img/plus.white.png" ng-click="$rootScope.show_person = !$rootScope.show_person"></li>
+          <li ng-if="show_person_menu"><input type="image" src="img/list.white.png" ng-click="list_persons()"></li>
+          
+          <hr>
+      
+          <li><input id="group" type="image" src="img/group.white.png" ng-click="show_group_menu = !show_group_menu"></li>
+          <li ng-if="show_group_menu"><input type="image" src="img/plus.white.png" ng-click="add_group()"></li>
+          <li ng-if="show_group_menu"><input type="image" src="img/list.white.png" ng-click="list_groups()"></li>
+        </ul>
+      </nav>
+
+      <timeline></timeline>
+    </div>
+    
+    <div id="person" ng-class="{'display-main': !$rootScope.show_person, 'display-person': $rootScope.show_person}">
+      <person></person>
+    </div>
   </body>
 </html>

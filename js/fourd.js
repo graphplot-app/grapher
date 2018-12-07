@@ -119,8 +119,7 @@ var FourD = function(){
       // div on click
       $(div).on('dblclick', () => {
         var name = $('div').html();
-        var input = $(`<textarea id="edit-input" value="${name}" draggable="draggable" resizeable="resizeable" />`).appendTo('html > body').get(0);
-        input
+        var input = $(`<textarea id="edit-input" value="${name}" draggable="draggable" resizeable="resizeable" />`).appendTo(that.element).get(0);
         input.style.position = 'absolute';
         input.style.left = div.style.left;
         input.style.top = div.style.top;
@@ -809,10 +808,9 @@ var FourD = function(){
   // api
   this.init = function(selector, options){
     var settings = $.extend({
-      border: '1px solid black',
       width: 500,
       height: 250,
-      background: 0x004477,
+      background: null,
     }, options);
     
     scene = new THREE.Scene();
@@ -845,14 +843,13 @@ var FourD = function(){
     scene.add( camera );
     scene.add( light );
 
-    /*
     if(options.background){
-      scene.background = new THREE.TextureLoader().load(options.background);
+      if(options.background instanceof Number){
+        renderer.setClearColor(options.background);
+      }
     }
-    */
     
-    renderer = new THREE.WebGLRenderer();
-    renderer.setClearColor(settings.background);
+    renderer = new THREE.WebGLRenderer({alpha: options.background === null});
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize( settings.width, settings.height );
     
@@ -869,7 +866,7 @@ var FourD = function(){
     camera.lookAt(new THREE.Vector3(0, 0, 0));
     
     if(options.resize){
-      options.resize = THREEx.WindowResize(renderer, camera);
+      options.resize = THREEx.WindowResize(renderer, camera, options.width, options.height);
     }
     clock = new THREE.Clock();
     controls = new THREE.OrbitControls( camera, renderer.domElement );

@@ -1,0 +1,23 @@
+<div class="container person">
+  <div class="row">
+    <div class="col-sm"></div>
+  
+    <div class="col-sm">
+      <label class="label" for="name">Name:</label>
+      <input class="form-control" ng-model="$rootScope.name" id="name">
+      <br>
+      <div class="control-group">
+        <label class="label" for="dob">Date of Birth:</label>
+        <input type="date" class="form-control" ng-model="$rootScope.date_of_birth" id="dob">
+        <br>
+
+        <label class="label" for="dod">Date of Death:</label>
+        <input type="date" class="form-control" ng-model="$rootScope.date_of_death" id="dod">
+      </div>
+      <br>
+      <button class="btn btn-primary" type="submit" ng-click="$rootScope.add_person()">Enter</button>
+    </div>
+  
+    <div class="col-sm"></div>
+  </div>
+</div>

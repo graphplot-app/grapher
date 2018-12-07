@@ -10,8 +10,21 @@
 	*/
 }
 
+:root {
+  --top: 100px;
+}
+
+#timeline {
+  margin-left: 20px;
+  margin-right: 20px;
+  bottom: 20px;
+  height: 400px;
+  width: 100%;
+}
+
 body {
   margin: 20px;
+  overflow: hidden;
 }
 
 header {
@@ -21,10 +34,22 @@ header {
 
 h1 {
   float: left;
-  margin-left: 20px;
+  margin-left: 10px;
   margin-right: 20px;
 }
 
+h2 {
+  float: left;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+nav {
+  position: absolute;
+  left: 20px;
+  top: var(--top);
+  z-index: 20;
+}
 
 ul.menu {
   list-style-type: none;
@@ -49,11 +74,14 @@ ul.menu > li > a:hover {
   background-color: black;
 }
 
-
-
 #display {
-  border: 1px solid #bfbfbf;
-  width: 100%;
+  position:absolute;
+  left: 20px;
+  top: 20px;
+  right: 20px;
+  bottom: 20px;
+  z-index: -20;
+  color: white;
 }
 
 .shadow {
@@ -75,3 +103,69 @@ ul.menu > li > a:hover {
 #content {
   margin: 30%;
 }
+
+.major {
+
+}
+
+.minor {
+  position: relative;
+  transform: scale(0.35);
+  left: -35%;
+  position: absolute;
+  top: -100%;
+}
+
+#sidebar {
+  position: absolute;
+  left: 20px;
+  top: var(--top);
+}
+
+#input {
+  position: absolute;
+  right: 20px;
+  top: var(--top);
+  width: 400px;
+}
+
+body {
+  background-image: url('/img/rainbow,lindsay-saunders.jpg');
+  background-repeat: no-repeat;
+  background-size: auto;
+}
+
+
+/* blur effect: */ 
+
+#main.display-main {
+  filter: blur(0);
+  pointer-events: all;
+}
+
+#main.display-person {
+  filter: blur(0.2rem);
+  pointer-events: none;
+}
+
+#person.display-main {
+  display: none;
+}
+
+#person.display-person {
+  display: block;
+  
+  position: absolute;
+  top: var(--top);
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+
+  filter: blur(0);
+  z-index: 2;
+  color: white;
+
+  pointer-events: all;
+}
+
+

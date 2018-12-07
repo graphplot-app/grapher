@@ -6,33 +6,49 @@
   May the 4th, 2018
   
   A jquery plugin for creating fourd graphs. 
+  requires fourd.js
+
 */
 
 (function($){
 
   var fourd = null;
+
+  var resolve = function(option, def=undefined){
+    if(option instanceof Function){
+      return option();
+    }else if(option !== undefined){
+      return option;
+    }else{
+      return def;
+    }
+  };
   
   $.widget('jmm.fourd', {
     options: {
-      background: 0x004477,
+      background: null,
       border: '1px solid black',
       width: window.innerWidth,
       height: window.innerHeight
     },
 
     _create: function(){
-      $(this).css($.extend({
-        display: "block",
-        border: this.options.border
-      }, this.options));
 
-      $(this).width(this.options.width);
-      $(this).height(this.options.height);
+      $(this).css({
+        'display': "block",
+        'border': this.options.border,
+        'width': resolve(this.options.width, window.innerWidth),
+        'height': resolve(this.options.height, window.innerHeight),
+        'background': this.options.background
+      });
+
+      $(this).width(resolve(this.options.width, window.innerWidth));
+      $(this).height(resolve(this.options.height, window.innerHeight));
       
       fourd = new FourD();
       fourd.init(this.element, {
-        width: this.options.width,
-        height: this.options.height,
+        width: resolve(this.options.width, window.innerWidth),
+        height: resolve(this.options.height, window.innerHeight),
         background: this.options.background
       });
       

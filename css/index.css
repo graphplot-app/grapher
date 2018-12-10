@@ -29,7 +29,7 @@ body {
 
 header {
   background-color: #004477;
-  color: white;
+  color: orange;
 }
 
 h1 {
@@ -49,6 +49,11 @@ nav {
   left: 20px;
   top: var(--top);
   z-index: 20;
+}
+
+nav > li {
+  width: 50px;
+  height: 50px;
 }
 
 ul.menu {
@@ -135,37 +140,62 @@ body {
   background-size: auto;
 }
 
-
-/* blur effect: */ 
-
-#main.display-main {
-  filter: blur(0);
-  pointer-events: all;
+.vis-item {
+  color: orange;
 }
 
-#main.display-person {
-  filter: blur(0.2rem);
-  pointer-events: none;
+.vis-text {
+  color: orange;
 }
 
-#person.display-main {
+.vis-timeline {
+  border: none;
+}
+
+.vis-background {
   display: none;
 }
 
-#person.display-person {
-  display: block;
-  
-  position: absolute;
-  top: var(--top);
-  left: 20px;
-  right: 20px;
-  bottom: 20px;
-
-  filter: blur(0);
-  z-index: 2;
+li > label {
   color: white;
-
-  pointer-events: all;
 }
 
+.blur {
+  filter: blur(0.2rem);
+}
 
+textarea {
+  background-color: transparent;
+  border: 1px dashed orange;
+  color: white;
+}
+
+label {
+  color: white;
+}
+
+dialog > h3 {
+  color: white;
+}
+
+dialog {
+  background: transparent;
+  border: none;
+  box-shadow: 0 0 2em thistle;
+}
+
+.blur {
+  filter: blur(0.2rem);
+}
+
+.no-blur {
+  filter: blur(0);
+}
+
+.text-label {
+  color: white;
+}
+
+table, thead, tbody, tr, th, td {
+  color: white;
+}

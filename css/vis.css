@@ -895,7 +895,7 @@ div.vis-network div.vis-navigation div.vis-button.vis-zoomExtends {
 
 .vis-item {
   position: absolute;
-  color: #1A1A1A;
+  color: wheat;
   border-color: #97B0F8;
   border-width: 1px;
   background-color: #D5DDF6;
@@ -1400,7 +1400,7 @@ div.vis-network div.vis-navigation div.vis-button.vis-zoomExtends {
 
 .vis-time-axis .vis-text {
   position: absolute;
-  color: #4d4d4d;
+  color: wheat;
   padding: 3px;
   overflow: hidden;
   box-sizing: border-box;

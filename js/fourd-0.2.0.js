@@ -1,9 +1,8 @@
 'use strict';
-
 /*
  four-d.js
  Joshua M. Moore
- April 23, 2015
+ December 9th, 2018
  
  Here's how it works:
  
@@ -51,9 +50,6 @@ var FourD = function(){
     }
   };
 
-  this.changed = false;
-  var fourd = this;
-
   /* 
     Vertex
     
@@ -79,8 +75,7 @@ var FourD = function(){
       return this.id.toString();
     };
 
-    this.edge_count = 0;
-    this.edges = {};
+    this.edges = new Set();
     
     if(!this.options.hasOwnProperty('label')){
       this.options.label = {
@@ -92,7 +87,7 @@ var FourD = function(){
   };
 
   var Label = function(options){
-    options = Object.assign({offset: 0}, options);
+    options = Object.assign({offset: 25}, options);
     
     // thanks, https://codepen.io/dxinteractive/pen/reNpOR
     var _createTextLabel = function() {
@@ -100,11 +95,11 @@ var FourD = function(){
       document.body.appendChild(div);
       div.className = 'text-label';
       div.style.position = 'absolute';
-      div.style.width = 'min-content';
-      div.style.height = 'min-content';
+      div.style.width = 100;
+      div.style.height = 100;
       div.innerHTML = options.text;
-      div.style.top = 0;
-      div.style.left = 0;
+      div.style.top = -1000;
+      div.style.left = -1000;
       
       /*
         div.on click:
@@ -119,7 +114,8 @@ var FourD = function(){
       // div on click
       $(div).on('dblclick', () => {
         var name = $('div').html();
-        var input = $(`<textarea id="edit-input" value="${name}" draggable="draggable" resizeable="resizeable" />`).appendTo(that.element).get(0);
+        var input = $(`<textarea id="edit-input" value="${name}" draggable="draggable" resizeable="resizeable" />`).appendTo('html > body').get(0);
+        input
         input.style.position = 'absolute';
         input.style.left = div.style.left;
         input.style.top = div.style.top;
@@ -137,6 +133,7 @@ var FourD = function(){
       });
 
       var _this = this;
+ 
       var label = {
         element: div,
         parent: options.object,
@@ -152,25 +149,8 @@ var FourD = function(){
         },
         get2DCoords: function(position, camera) {
           var vector = position.project(camera);
-          var rect = document.querySelector('canvas').getBoundingClientRect();
-          
-          /*
-          vector.x = (vector.x + 1)/2 * (rect.right - rect.left);
-          vector.y = (vector.y - 1)/2 * (rect.bottom - rect.top) + rect.top;
-          */
-          /*
           vector.x = (vector.x + 1)/2 * window.innerWidth;
           vector.y = -(vector.y - 1)/2 * window.innerHeight + options.offset;
-          */
-
-          vector.x = ((vector.x + 1)/2 * (rect.right - rect.left)) + rect.left;
-          vector.y = (-(vector.y - 1)/2 * (rect.bottom - rect.top)) + rect.top;
-
-          if(vector.x < rect.left) vector.x = rect.left;
-          if(vector.x > rect.right) vector.x = rect.right - this.element.offsetWidth;
-          if(vector.y < rect.top) vector.y = rect.top;
-          if(vector.y > rect.bottom) vector.y = rect.bottom - this.element.offsetHeight;
-
           return vector;
         },
         remove: () => {
@@ -196,7 +176,7 @@ var FourD = function(){
   };
 
   Label.all = [];
-  
+
   Vertex.prototype.paint = function(scene){
     this.object = new THREE.Group();
     this.object.position.set(
@@ -230,6 +210,21 @@ var FourD = function(){
     
     scene.add(this.object);
   };
+
+  Vertex.prototype.set = function(options){
+    if(options.color !== undefined){
+      this.cube.material.color = options.color;
+      this.cube.material.needsUpdate = true;
+    }
+    if(options.texture !== undefined){
+      this.cube.material.map = new THREE.TextureLoader().load( options.texture );
+      this.cube.material.needsUpdate = true;
+      this.texture = options.texture;
+    }
+    if(options.text !== undefined){
+      this.label.element.innerHTML = options.text;
+    }
+  };
   
   /* 
     Vertex.remove(...) 
@@ -247,12 +242,12 @@ var FourD = function(){
     this.options = options;
     scene.remove(this.object);
     this.paint(scene);
-    for(var i=0; i<this.edges.length; i++){
-      scene.remove(this.edges[i].object);
-      if(this.edges[i].source == this){
-        this.edges[i].object = line(scene, this, this.edges[i].target, this.edges[i].options);
+    for(var edge in this.edges){
+      scene.remove(edge.object);
+      if(this.edge.source == this){
+        edge.object = line(scene, this, edge.target, edge.options);
       }else{
-        this.edges[i].object = line(scene, this.edges[i].source, this, this.edges[i].options)
+        edge.object = line(scene, edge.source, this, edge.options)
       }
     }
   }
@@ -278,21 +273,15 @@ var FourD = function(){
     this.source = source;
     this.target = target;
 
-    this.source.edge_count += 1;
-    this.target.edge_count += 1;
-
-    if(!this.source.edges) this.source.edges = [];
-    if(!this.target.edges) this.target.edges = [];
-    this.source.edges[this.id] = this;
-    this.target.edges[this.id] = this;
+    this.source.edges.add(this);
+    this.target.edges.add(this);
 
     this.order = Math.random();
   };
 
   Edge.prototype.paint = function(scene, options){
     options = options || {
-      color: 0xffffff,
-      paint: true
+      color: 0xffffff
     }
     this.object = line(scene, this.source, this.target, options);
   };
@@ -302,49 +291,42 @@ var FourD = function(){
   };
 
   Edge.prototype.destroy = function(scene){
-    delete this.source.edges[this.id];
-    delete this.target.edges[this.id];
-
+    this.source.edges.delete(this);
+    this.target.edges.delete(this);
+    
     CONSTANTS.scene.remove(this.object);
     delete this.object;
-    
-    this.source.edge_count--;
-    this.target.edge_count--;
   };
 	
   // Graph
+  var graph_id_spawn = 0;
   var Graph = function(scene){
+    this.id = graph_id_spawn++;
     this.scene = scene;
     this.type = 'Graph';
-    this.fourd = fourd;
+
+    this.changed = false;
 
     this.vertex_id_spawn = 0;
-    this.V = {};
+    this.V = new Set();
 
     this.edge_id_spawn = 0;
-    this.E = {};
+    this.E = new Set();
 
-    this.edge_counts = {};
+    this.temperature = 0.00;
   };
 
   // api
   Graph.prototype.clear = function(){
+    this.E.forEach(edge => edge.destroy(this.scene));
+    this.V.forEach(vertex => scene.remove(vertex));
 
-    for(var e in this.E){
-      this.E[e].destroy(that.scene);
-    }
+    this.V.clear();
+    this.E.clear();
 
-    for(var v in this.V){
-      // this.scene.remove...
-      scene.remove(this.V[v].object);
-      // this.V[v].destroy();
-    }
-
+    this.changed = false;
     this.temperature = 0.00;
-    
-    this.V = new Set();
-    this.E = new Set();
-    this.edge_counts = {};
+
     this.edge_id_spawn = 0;
     this.vertex_id_spawn = 0;
   };
@@ -353,14 +335,14 @@ var FourD = function(){
     return '_' + source.toString() + '_' + target.toString();
   };
 
-  // api
   Graph.prototype.add_vertex = function(options){
     options = options || {};
     
     var v = new Vertex(this.vertex_id_spawn++, options);
     v.paint(this.scene);
-    this.V.add(v)
     v.object.vertex = v;
+    this.V.add(v);
+
     this.changed = true;
     return v;
   };
@@ -368,33 +350,18 @@ var FourD = function(){
   Graph.prototype.add_camera_vertex = function(camera){
     var v = new CameraVertex(this.vertex_id_spawn++, camera);
     v.position = v.object.position;
-    this.V[v.id] = v;
+    this.V.add(v);
     return v;
   };
 
-  // api
   Graph.prototype.add_edge = function(source, target, options){
-    var key = '_' + source.id + '_' + target.id;
-    var edge;
-    
-    if(!this.edge_counts.hasOwnProperty(key)){
-      edge = new Edge(this.edge_id_spawn++, source, target, options);
-      this.E[edge.id] = edge;
-      this.edge_counts[key] = 1;
-    }else{
-      this.edge_counts[key]++;
-      for(var e in target.edges){
-        for(var r in source.edges){
-          if(e === r){
-            return source.edges[r];
-          }
-        }
-      }
-    }
-    
-    edge.paint(this.scene);
 
+    var edge = arguments[0] instanceof Edge ? arguments[0] : new Edge(this.edge_id_spawn++, source, target, options);
+    edge.paint(this.scene);
+    
+    this.E.add(edge);
     this.changed = true;
+
     return edge;
   };
 	
@@ -402,25 +369,19 @@ var FourD = function(){
 		return this.add_edge(source, target, {opacity: 0.0});
 	}
 
-  // api
   Graph.prototype.remove_edge = function(edge){
-    var key = this._make_key(edge.source, edge.target);
-    if(--this.edge_counts[key] === 0){
-      edge.destroy();
-      delete this.E[edge.id];
-    }
-
+    edge.destroy();
+    this.E.delete(edge);
     this.changed = true;
   };
 
   Graph.prototype.toString = function(){
-    var edges = Object.keys(this.E).length;
-    var nodes = Object.keys(this.V).length;
+    var edges = this.E.size;
+    var vertices = this.V.size;
 
-    return '|V|: ' + nodes.toString() + ', |E|: ' + edges.toString();
+    return `{|V|=${this.V.size}, |E|=${this.E.size}}`;
   };
 
-  // api
   Graph.prototype.remove_vertex = function(vertex){
 
     console.log('remove', vertex);
@@ -429,20 +390,66 @@ var FourD = function(){
       vertex.label.remove();
     }
 
-    for(var e in vertex.edges){
-      vertex.edges[e].destroy(this.scene);  
-      delete this.E[e];
-    }
-    
-    this.scene.remove(vertex.object);
-    delete this.V[vertex.id];
+    vertex.edges.forEach(edge => {
+      edge.destroy(this.scene);
+    });
 
+    this.E.delete(e);
+
+    this.scene.remove(vertex.object);
+    this.V.delete(vertex);
     this.changed = true;
   };
+
+  Graph.prototype.add = function(vertex_or_edge){
+    if(vertex_or_edge instanceof Vertex){
+      var vertex = vertex_or_edge;
+      this.V.add(vertex);
+      vertex.paint(scene);
+    }
+
+    if(vertex_or_edge instanceof Edge){
+      var edge = vertex_or_edge;
+      this.E.add(edge);
+
+      if(!this.V.has(edge.source)){
+        this.V.add(edge.source);
+      }
+
+      if(!this.V.has(edge.target)){
+        this.V.add(edge.target);
+      }
+    }
+
+    return vertex_or_edge;
+  }
+
+  Graph.prototype.delete = function(vertex_or_edge){
+    if(typeof vertex_or_edge == "Vertex"){
+      var vertex = vertex_or_edge;
+      
+      for(var edge in vertex.edges){
+         edge.delete_from(this);
+      }
+      
+      this.V.delete(vertex);
+    }
+    
+    if(typeof vertex_or_edge == "Edge"){
+      var edge = vertex_or_edge;
+      edge.source.delete_from(this);
+      edge.target.delete_from(this);
+      this.E.delete(edge);
+    }
+    
+    return vertex_or_edge;
+  }
 
   var is_graph = function(potential){
     return potential.type === 'Graph';
   };
+
+
 
   // apiish
   var Cube = function(options){
@@ -524,12 +531,496 @@ var FourD = function(){
     return line;
   };
 
+  // to store element and its priority
+class QElement {
+  constructor(element, priority)
+  {
+    this.element = element;
+    this.priority = priority;
+  }
+}
+ 
+// PriorityQueue class
+class PriorityQueue {
+ 
+  // An array is used to implement priority
+  constructor(){
+    this.items = [];
+  }
+
+  /* 
+    enqueue function to add element to the queue as per priority
+  */
+  enqueue(element, priority){
+    // creating object from queue element
+    var qElement = new QElement(element, priority);
+    var contain = false;
+
+    // iterating through the entire
+    // item array to add element at the
+    // correct location of the Queue
+    for (var i = 0; i < this.items.length; i++) {
+      if (this.items[i].priority > qElement.priority) {
+        // Once the correct location is found it is
+        // enqueued
+        this.items.splice(i, 0, qElement);
+        contain = true;
+        break;
+      }
+    }
+
+    // if the element have the highest priority
+    // it is added at the end of the queue
+    if (!contain) {
+      this.items.push(qElement);
+    }
+  }
+
+  /*
+    dequeue method to remove element from the queue
+  */
+  dequeue(){
+    // return the dequeued element
+    // and remove it.
+    // if the queue is empty
+    // returns Underflow
+    if (this.empty()) throw "Underflow";
+    return this.items.shift().element;
+  }
+
+  empty(){
+    // return true if the queue is empty.
+    return this.items.length == 0;
+  }
+}
+
+/**
+ * class DMVertex
+ * 
+ * Encapsulates a vertex with a set union operation
+ */
+class DMVertex extends Vertex {
+  
+  /**
+   * new DMVertex(vertex1, vertex2, ...)
+   * 
+   * 
+   */
+  constructor(){
+    super(...arguments);
+    this.finer = new Set([...arguments]);
+    [...this.finer].map(v => {
+      v.coarser = this;
+    });
+
+    this.object = {};
+    this.object.acceleration = new THREE.Vector3();
+    this.object.velocity = new THREE.Vector3();
+    this.object.position = new THREE.Vector3();
+    
+    return this;
+  }
+
+  /**
+   * 
+   */
+  union(dmvertex){
+    return new DMVertex(this, dmvertex);
+  }
+
+  has(vertex){
+    return this.finer.has(vertex) 
+      || [...this.finer].some(v => {
+        return (v == vertex) || ((v instanceof DMVertex) && v.finer.has(vertex))
+      });
+  }
+  
+  toString(){
+    return `DMVertex#${this.id}`;
+  }
+}
+DMVertex.all = new Set();
+
+/**
+ * class DMEdge
+ * 
+ * Encapsulates an edge with a count for multiple edges across the 
+ * same vertices. 
+ */
+class DMEdge extends Edge {
+  constructor(edge){
+    if(arguments[0] instanceof Edge){
+      super(edge.source, edge.target);
+      edge.coarser = this;
+      this.finer = edge;
+    }else{
+      super(...arguments);
+    }
+
+    this.count = 0;
+  }
+  
+  toString(){
+    return `DMEdge#${this.id}(${this.source.id},${this.target.id})`;
+  }
+}
+
+/**
+ * class DynamicMatching
+ * 
+ * responsible for maintaining coarser and coarser versions of an
+ * initially attached graph. 
+ */
+class DynamicMatching extends Graph {
+  /**
+   * new DynamicMatching(base Graph|DynamicMatching, Integer)
+   * 
+   * - base specifies the base graph which is to be reduced, and to which this 
+   *   dynamic matching should attach itself to, decorating add and delete in the base 
+   *   object.
+   * - n specifies how many levels of DynamicMatchings should be produced.
+   * 
+   * Instantiates the member variables id, finer, coarser, V (Map), E (Set) and pq. 
+   */
+  constructor(finer, n){
+    super();
+    this.id = ++DynamicMatching.id;
+
+    this.temperature = 0.00;
+    
+    this.finer = finer; // the base object
+    finer.coarser = this; // a doubly linked list
+    this.V = new Map(); // holds the vertices of this dynamic matching
+    this.E = new Set(); // holds the edges of this dynamic matching
+    this.pq = new PriorityQueue(); // ge
+    
+    this.m = new Map();
+    
+    if(n > 0){
+      this.coarser = new DynamicMatching(this, --n);
+    }
+
+    var finer_add = finer.add.bind(finer);
+    var finer_delete = finer.delete.bind(finer);
+
+    var that = this;
+    console.log(`${this} rewiring ${finer}'s add and delete.`);
+    finer.add = (entity) => {
+      console.assert(entity, `entity must exist to be added to ${finer} and ${that}`);
+      finer_add(entity);
+      if(entity instanceof Edge){
+        that.add(entity);
+      }
+      
+      return entity;
+    }
+
+    finer.delete = (entity) => {
+      console.assert(entity, `entity must exist to be removed from ${that} and ${finer}`);
+      finer_delete(entity);
+      that.delete(this.get_corresponding(entity));
+
+      return entity;
+    }
+    
+    return this;
+  }
+
+  add(v_or_e){
+    if(v_or_e instanceof Vertex){
+      var vertex = v_or_e;
+      this.add_vertex(vertex);
+    }
+    if(v_or_e instanceof Edge){
+      var edge = v_or_e;
+      this.add_edge(edge);
+    }
+    
+    this.process_queue();
+    return v_or_e;
+  }
+
+  /*
+    Adds a new DMVertex for the supplied base vertex.
+  */
+  add_vertex(v){
+    
+    // "No action needed."
+    /*
+    if(!this.get_corresponding(v)){
+      this.V.set(vertex, new DMVertex(v));
+    }
+    */
+  }
+
+  get_corresponding_edge(e){
+    var e_prime = [...this.E].find(e_prime => {
+      return e_prime.source.has(e.source) 
+        || e_prime.target.has(e.target)
+        || e_prime.source.has(e.target)
+        || e_prime.target.has(e.source);
+    });
+
+    if(!e_prime){
+      e_prime = new DMEdge(
+        this.get_corresponding(e.source),
+        this.get_corresponding(e.target)
+      );
+      this.E.add(e_prime);
+    }
+
+    return e_prime;
+  }
+  
+  get_corresponding_vertex(v){
+    var v_prime = this.V.get(v);
+    if(!v_prime){
+      v_prime = new DMVertex(v);
+      this.V.set(v, v_prime);
+    }
+    return v_prime;
+  }
+  
+  get_corresponding(v_or_e){
+    if(v_or_e instanceof Vertex){
+      return this.get_corresponding_vertex(v_or_e);
+    }
+    
+    if(v_or_e instanceof Edge){
+      return this.get_corresponding_edge(v_or_e);
+    }
+  }
+
+  add_edge(e){
+    // "Increase the count of (v1', v2') in E' possibly adding an edge..."
+    var v1_prime = this.get_corresponding(e.source);
+    var v2_prime = this.get_corresponding(e.target);
+    
+    var e_prime = this.get_corresponding(e);
+    if(e_prime){
+      e_prime.count++;
+    }else{
+      e_prime = new DMEdge(v1_prime, v2_prime);
+      this.E.add(e_prime);
+    }
+    
+    // "add e to the queue"
+    this.pq.enqueue(e, e.order);
+  }
+
+  delete(v_or_e){
+    //console.log(`Dynamic Matching ${this.id} deleting ${v_or_e}`);
+
+    if(v_or_e instanceof Vertex){
+      var vertex = v_or_e;
+      return this.delete_vertex(vertex);
+    }
+
+    if(v_or_e instanceof Edge){
+      var edge = v_or_e;
+      return this.delete_edge(edge);
+    }
+    
+    return v_or_e;
+  }
+
+  delete_vertex(v){
+    [...v.edges].map(e => this.delete(this.get_corresponding(e)));
+    this.V.delete(v);
+  }
+
+  delete_edge(e){
+    // "If e is in the matching, then unmatch(e)"
+    var e_prime = [...this.E].find(e_prime => {
+      var v1_prime = e_prime.source;
+      var v2_prime = e_prime.target;
+      return v1_prime.has(e.source) 
+        && v2_prime.has(e.target);
+    });
+
+    if(e_prime){
+      this.unmatch(e);
+      
+      e_prime.count--;
+      if(e_prime.count == 0){
+        this.delete(e_prime);
+      }
+
+      console.log(`${e}>${e.source}>${e.source.edges.size} E`);
+      if(e.source.edges.size == 0){
+        this.delete(this.get_corresponding(e.source));
+      }
+      
+      console.log(`${e}>${e.target}>${e.target.edges.size} E`);
+      if(e.target.edges.size == 0){
+        this.delete(this.get_corresponding(e.target));
+      }
+    }
+
+    [...this.E]
+    .filter(edge => this.depends(e, edge))
+    .map(edge => this.pq.enqueue(edge, edge.order));
+  }
+
+  depends(e1, e2){
+    // "e1 -> e2 === (e1 < e2) and e1 S e2"
+    var priority = e1.order < e2.order;
+    var share_vertex = e1.shares_vertex(e2);
+
+    return priority && share_vertex;
+  }
+  
+  match(e){
+    console.assert(e instanceof Edge, `DM::match didn't receive a Edge`);
+    console.assert(e.source instanceof Vertex, `DM::match received a Edge but it doesn't have a Vertex as source`);
+    console.assert(e.target instanceof Vertex, `DM::match received a Edge but it doesn't have a Vertex as target`);
+    
+    console.log(`DM#${this.id} matching ${e}`);
+
+    // For each edge e' where e -> e', if e' is matched then
+    // unmatch(e').
+    [...this.E]
+    .filter(e2 => this.depends(e, e2) && this.get_corresponding(e2))
+    .map(e2 => this.unmatch(e2));
+    
+    // Delete vertices v1_coarse and v2_coarse from the coarser graph.
+    var v1_prime = this.get_corresponding(e.source);
+    var v2_prime = this.get_corresponding(e.target);
+    this.delete(v1_prime);
+    this.delete(v2_prime);
+
+    // Create a new vertex v1 U v2 in G'. 
+    var v1_u_v2 = new DMVertex(e.source, e.target);
+    this.add(v1_u_v2);
+
+    // For all edges e = (v, v') in G incident on v1 or v2
+    // (but not both), add a corresponding edge to or from v1 U v2
+    // in G'.
+    [...e.source.edges]
+    .filter(edge => edge != e)
+    .map(edge => {
+      var other_vertex = new DMVertex(edge.source);
+      var corresponding_edge = new DMEdge(other_vertex, v1_u_v2);
+      this.add(other_vertex);
+      this.add(corresponding_edge);
+    });
+    [...e.target.edges]
+    .filter(edge => edge != e)
+    .map(edge => {
+      var other_vertex = new DMVertex(edge.target);
+      var corresponding_edge = new DMEdge(v1_u_v2, other_vertex);
+      this.add(other_vertex);
+      this.add(corresponding_edge);
+    });
+
+    [...this.E]
+    .filter(edge => this.depends(edge, e))
+    .map(edge => this.pq.enqueue(edge, edge.order));
+  }
+
+  unmatch(e){
+    console.log(`DM ${this.id} unmatching ${e}`);
+
+    // "Delete any edges in G' incident on v1_u_v2."
+    var v1_u_v2 = this.get_corresponding(e.source);
+    console.assert(v1_u_v2, `v1_u_v2 not found`)
+    console.assert(v1_u_v2 == this.get_corresponding(e.target), `sanity`);
+
+    [...v1_u_v2.edges]
+    .map(incident_edge => this.delete(incident_edge));
+
+    
+    // "Delete the vertex v1_u_v2 from G'"
+    this.delete(v1_or_v2);
+    
+    // "Add new vertices v1_prime and v2_prime to G'"
+    this.V.set(e.source, new DMVertex(e.source));
+    this.V.set(e.target, new DMVertex(e.target));
+    
+    // "For each edge incident on v1 or v2 in G add a corresponding edge to G'"
+    [...e.source.edges]
+    .map(edge => this.add(new DMEdge(
+      this.get_corresponding(e.source),
+      this.get_corresponding(edge.source == e.source ? edge.target : edge.source)
+    )));
+    [...e.target.edges]
+    .map(edge => this.add(new DMEdge(
+      this.get_corresponding(e.target),
+      this.get_corresponding(edge.target == e.target ? edge.source : edge.target)
+    )));
+
+    // "For each e' such that e -> e', add e' to the queue."
+    [...this.E]
+    .filter(edge => this.depends(e, edge))
+    .map(edge => this.pq.enqueue(edge, edge.order));
+  }
+
+  match_equation(e){
+    if(this.E.size == 0){
+      console.log('because empty');
+      return true;
+    }
+    
+    // "... e is matched if and only if there is no edge e' element M
+    // such that e' -> e."
+    var m = [...this.E]
+    .every(edge => !this.depends(edge, e));
+    this.m.set(e, m);
+
+    return m;
+  }
+
+  process_queue(){
+    while(!this.pq.empty()){
+      var e = this.pq.dequeue();
+      console.assert(e instanceof Edge, `pq didn't return an Edge`);
+      var m = this.match_equation(e);
+      if(m != this.m.get(e)){
+        if(m){
+          this.match(e);
+        }else{
+          this.unmatch(e);
+        }
+      }
+    }
+  }
+
+  toString(){
+    return `DynamicMatching#${this.id}{|V|:${this.V.size},|E|:${this.E.size}}`;
+  }
+  
+  get size(){
+    return this.E.size + this.V.size;
+  }
+  
+  get complexity(){
+    return this.V.size / this.E.size;
+  }
+}
+DynamicMatching.id = 0;
+
+/**
+ * Graph|DynamicMatching coarser(Graph, Integer)
+ * 
+ * Retrieves the dynamic matching at the specified level, 
+ * or the graph if supplied a level value of zero. 
+ */
+function coarser(base, level){
+  if(level){
+    return coarser(base.coarser, --level);
+  }
+  return base
+}
+
+
   var BHN3 = function(){
     this.inners = [];
     this.outers = {};
     this.center_sum = new THREE.Vector3(0, 0, 0);
     this.center_count = 0;
-    this.temperature = 0.00;
+    this.temperature = 0.000;
+
+    return this;
   };
 
   BHN3.prototype.constants = CONSTANTS.BHN3;
@@ -578,9 +1069,8 @@ var FourD = function(){
             vertex.object.position.clone(),
             this.inners[i].object.position.clone()
           );
-
+    
           this.temperature += individual_force.lengthSq();
-	  
           force.add(individual_force);
         }
       }
@@ -622,42 +1112,60 @@ var FourD = function(){
     // second term
     enumerator2 = difference;
     denominator2 = absolute_difference;
-    
     term2 = enumerator2.divideScalar(denominator2);
-    
-    // result
-    result = term2.multiplyScalar(term1);  
-    
+    result = term2.multiplyScalar(term1);
+
     return result;
   };
   
   var edges = false;
   Graph.prototype.layout = function(){
+    this.temperature = 0.00;
+
+    if(this.coarser){
+      this.layout.call(this.coarser)
+    }else{
+    }
 
     // calculate repulsions
     var tree = new BHN3();
     var vertex, edge, v, e;
-    
-    for(v in this.V){
-      vertex = this.V[v];
-      vertex.acceleration = new THREE.Vector3(0.0, 0.0, 0.0);
-      vertex.repulsion_forces = new THREE.Vector3(0.0, 0.0, 0.0);
-      vertex.attraction_forces = new THREE.Vector3(0.0, 0.0, 0.0);
-      
+
+    this.V.forEach(vertex => {
+      vertex.acceleration = this.coarser ? this.coarser.get_corresponding_vertex(vertex).acceleration.clone() : new THREE.Vector3();
+      vertex.repulsion_forces = new THREE.Vector3();
+      vertex.attraction_forces = new THREE.Vector3();
       tree.insert(vertex);
-    }
-    
-    for(v in this.V){
-      vertex = this.V[v];
-      vertex.repulsion_forces = vertex.repulsion_forces || new THREE.Vector3();
-      vertex.repulsion_forces.set(0.0, 0.0, 0.0);
+    })
+
+    this.V.forEach(vertex => {
+      vertex.repulsion_forces = new THREE.Vector3();
       tree.estimate(
-        vertex, vertex.repulsion_forces,
+        vertex,
+        vertex.repulsion_forces,
         BHN3.prototype.pairwise_repulsion
-      );
-    }
+      )
+    });
     
+    this.temperature = (tree.temperature / this.V.size);
     // calculate attractions
+
+    this.E.forEach(edge => {
+      var attraction = edge.source.object.position.clone().sub(
+        edge.target.object.position
+      );
+      attraction.multiplyScalar(-1 * CONSTANTS.attraction);
+
+      if(edge.options.directed){
+        var distance = edge.object.geometry.vertices[0].distanceTo(edge.object.geometry.vertices[1]);
+        var gravity = new THREE.Vector3(0.0, CONSTANTS.gravity/distance, 0.0);
+        attraction.add(gravity);
+      }
+      
+      edge.source.attraction_forces.sub(attraction);
+      edge.target.attraction_forces.add(attraction);
+    })
+    
     for(e in this.E){
       edge = this.E[e];
       
@@ -678,41 +1186,32 @@ var FourD = function(){
       edge.target.attraction_forces.add(attraction);
     }
     
-    for(v in this.V){
-      // update velocity
-      vertex = this.V[v];
-      if(vertex){
-        var friction = vertex.velocity.multiplyScalar(CONSTANTS.friction);
+    this.V.forEach(vertex => {
+      var friction = vertex.velocity.multiplyScalar(CONSTANTS.friction);
 
-        vertex.acceleration.add(
-          vertex.repulsion_forces.clone().add(
-            vertex.attraction_forces.clone().negate()
-          )
-        );
-        vertex.acceleration.sub(friction);
-        
-        vertex.velocity.add(vertex.acceleration);
-        vertex.object.position.add(vertex.velocity);
-      }
-    }
-    
-    for(e in this.E){
-      edge = this.E[e];
+      vertex.acceleration.add(
+        vertex.repulsion_forces.clone().add(
+          vertex.attraction_forces.clone().negate()
+        )
+      )
+      vertex.acceleration.sub(friction);
+      vertex.velocity.add(vertex.acceleration);
+      vertex.object.position.add(vertex.velocity);
+    });
 
-      if(edge){  
-        edge.object.geometry.dirty = true;
-        edge.object.geometry.__dirty = true;
-        edge.object.geometry.verticesNeedUpdate = true;
-      }
-    }
+    this.E.forEach(edge => {
+      edge.object.geometry.dirty = true;
+      edge.object.geometry.__dirty = true;
+      edge.object.geometry.verticesNeedUpdate = true;
+    })
 
-    this.temperature = tree.temperature;
     this.center = tree.center();
+    this.temperature = tree.temperature;
   };
 	
 	Graph.prototype.add_cycle = function(vertex_options){
 		var vertices = [];
-		var edgaes = [];
+		var edges = [];
 		for(var i=0; i<vertex_options.length; i++){
 			vertices.push(this.add_vertex(vertex_options[i]));
 			if(i>0){
@@ -774,7 +1273,23 @@ var FourD = function(){
       raycaster,
       mouse,
       intersects,
-			render_loop = [];
+      render_loop = [];
+      
+  var statistics = function(graph){
+    return {
+      t:  Date.now(),
+      graph: {
+        V: graph.V.size,
+        E: graph.E.size,
+        T: graph.temperature,
+      },
+      coarser: {
+        V: graph.coarser.V.size,
+        E: graph.coarser.E.size,
+        T: graph.coarser.temperature
+      }
+    }
+  }
       
   var old_intersects,
       old_color;
@@ -782,7 +1297,9 @@ var FourD = function(){
   var render = function render(){
     requestAnimationFrame(render);
 
-    graph.layout();
+    if(graph.changed || graph.temperature > 0.00025){
+      graph.layout();
+    } 
     controls.update(clock.getDelta());
     
     for(var i=0; i<that.render_loop.length; i++){
@@ -798,7 +1315,6 @@ var FourD = function(){
     }
     
     renderer.render(scene, camera);
-    // graph.fourd.changed = false;
   };
 
   var clear = function clear(){
@@ -808,6 +1324,7 @@ var FourD = function(){
   // api
   this.init = function(selector, options){
     var settings = $.extend({
+      border: 'none',
       width: 500,
       height: 250,
       background: null,
@@ -843,11 +1360,11 @@ var FourD = function(){
     scene.add( camera );
     scene.add( light );
 
+    /*
     if(options.background){
-      if(options.background instanceof Number){
-        renderer.setClearColor(options.background);
-      }
+      scene.background = new THREE.TextureLoader().load(options.background);
     }
+    */
     
     renderer = new THREE.WebGLRenderer({alpha: options.background === null});
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -861,13 +1378,13 @@ var FourD = function(){
     })
     
     graph = new Graph(scene);
+    new DynamicMatching(graph, 0);
     
     camera.position.z = -250;
     camera.lookAt(new THREE.Vector3(0, 0, 0));
     
-    if(options.resize){
-      options.resize = THREEx.WindowResize(renderer, camera, options.width, options.height);
-    }
+    THREEx.WindowResize(renderer, camera);
+
     clock = new THREE.Clock();
     controls = new THREE.OrbitControls( camera, renderer.domElement );
     controls.update(clock.getDelta()); 
@@ -937,12 +1454,18 @@ var FourD = function(){
       clock: clock, 
       raycaster: raycaster,
       mouse: mouse,
-
+    
       Vertex: Vertex,
       Edge: Edge,
       CameraVertex: CameraVertex,
-      BHN3: BHN3
+      BHN3: BHN3,
     };
+
+    this.graph = graph;
+    this.render = render;
+    this.clear = clear;
+		this.render_loop = render_loop;
+    this.variables = CONSTANTS;
 
     /**
      * element choice(iterable)
@@ -951,7 +1474,8 @@ var FourD = function(){
      * to an array and choosing a random element. 
      */
     var choice = function(iterable){
-      return [...iterable][Math.floor(iterable.size*Math.random())];
+      var arr = [...iterable];
+      return arr[Math.floor(arr.length*Math.random())];
     }
 
     /**
@@ -959,23 +1483,17 @@ var FourD = function(){
      * 
      * adds the specified number of vertices (v) and edges (e) to the graph. 
      */
-    this.add_random = (v, e) => {
+    this.randomize = (v, e) => {
       for(var i=0; i<v; i++){
-        this.graph.add_vertex({cube: {size: 10, color: Math.floor(Math.random() * 0xffffff)}});
+        this.graph.add_vertex({cube: {size: 10, color: Math.floor(0xffffff*Math.random())}});
       }
       
       for(var i=0; i<e; i++){
-        this.graph.add(new Edge(choice(this.graph.V.values()), choice(this.graph.V.values())));
+        this.graph.add_edge(choice(this.graph.V.values()), choice(this.graph.V.values()));
       }
       
       return graph;
     }
-
-    this.graph = graph;
-    this.render = render;
-    this.clear = clear;
-		this.render_loop = render_loop;
-    this.variables = CONSTANTS;
 
     render();
   };

@@ -1,4 +1,4 @@
 'use strict';
 
 angular
-  .module('SocialCartographyApp', ['Timeline', 'Person']);
+  .module('SocialCartography', ['Timeline', 'Person', 'ui.bootstrap']);

@@ -1,10 +1,12 @@
+'esversion: 6';
+
 angular
   .module('Timeline', [])
   .component('timeline', {
     templateUrl: 'components/timeline/timeline.t.html',
     controller: ['$scope', function TimelineCtrl($scope){
-
       /* Set up the page elements */
+
       // fourd
       $('#display').fourd({
         'width': () => window.innerWidth-40, 
@@ -14,6 +16,55 @@ angular
       });
       this.fourd = $('#display').fourd('underlying_object');
 
+      // FourD fourd_history
+      var fourd_history = [];
+      var fourd_future = [];
+      
+      fourd_history.undo = function(){
+        var event = this.pop();
+    
+        var undos = {
+          'add_vertex': 'remove_vertex',
+          'add_edge': 'remove_edge'
+        };
+    
+        if(event){
+          fourd[undos[event.command]](...event.info);
+          fourd_future.unshift(event.command, event.info);
+        }else{
+          console.log('fourd_history empty.');
+        }
+      };
+    
+      fourd_future.redo = function(){
+        var event = this.shift();
+        if(event){
+          fourd[event.command](...event.info);
+        }
+      };
+
+      $('body').on('keydown', event => {
+        if(event.keyCode == 90 && event.ctrlKey){
+          fourd_history.undo();
+        }
+
+        if(event.keyCode == 89 && event.ctrlKey){
+          fourd_future.redo();
+        }
+      });
+
+      var add_vertex = this.fourd.graph.add_vertex.bind(this.fourd.graph);
+      this.fourd.graph.add_vertex = function(){
+        fourd_history.push({command: 'add_vertex', info: arguments});
+        return add_vertex(...arguments);
+      };
+
+      var add_edge = this.fourd.graph.add_edge.bind(this.fourd.graph);
+      this.fourd.graph.add_edge = function(){
+        fourd_history.push({command: 'add_edge', info: arguments});
+        return add_edge(...arguments);
+      };
+      
       // vis.js timeline
       this.dataset = new vis.DataSet();
       this.dataset.add({
@@ -42,6 +93,15 @@ angular
       $scope.groups = [];
       $scope.roles = [];
 
+      // event handlers for selecting vertices
+      $('#display').on('click', (event) => {
+        var vertex = this.fourd.resolve_click(event);
+
+        console.log(vertex);
+      });
+
+
+
       // event handlers for the dialogs
       $scope._process_person = () => {
         var name = $('#person-name').val();
@@ -54,7 +114,7 @@ angular
         var person = {
           _type: 'person',
           name: name,
-          content: name,
+          content: `*${name}`,
           birth: birth,
           death: death,
           start: birth,
@@ -66,7 +126,7 @@ angular
               birth: this.birth instanceof Date ? this.birth.toJSON() : null,
               death: this.death instanceof Date ? this.death.toJSON() : null,
               picture: this.picture
-            }
+            };
           }
         };
 
@@ -78,6 +138,7 @@ angular
         $('#person-birth').val(null);
         $('#person-death').val(null);
         $('#person-picture').val(null);
+        $scope.person_picture = null;
       };
 
       $scope._process_group = () => {
@@ -98,11 +159,13 @@ angular
               start: this.start instanceof Date ? this.start.toJSON() : null,
               end: this.end instanceof Date ? this.end.toJSON() : null,
               picture: this.picture
-            }
+            };
           }
         };
 
-        group.vertex = $scope.groups[group.name] = this.fourd.graph.add_vertex({cube: {size: 10, texture: group.picture}, label: {text: group.name}});
+        group.cycle = new Cycle({cube: {size: 10, texture: group.picture}, label: {text: group.name}});
+        group.vertex = $scope.groups[group.name] = group.cycle.vertex;
+
         this.dataset.add(group);
         $scope.groups.push(group);
 
@@ -110,29 +173,51 @@ angular
         $('#group-start').val(null);
         $('#group-end').val(null);
         $('#group-picture').val(null);
+        $scope.group_picture = null;
       };
 
-      var Cycle = function(){
+      var Cycle = function(vertex_options){
+        this.fourd = $('#display').fourd('underlying_object');
         this.elements = [];
+        this.edges = [];
         this.last_edge = null;
+        this.vertex = this.fourd.graph.add_vertex(vertex_options);
         return this;
       }
 
-      Cycle.prototype.add_vertex = (v) => {
+      Cycle.prototype.add_vertex = function(v){
         this.elements.push(v);
         if(this.elements.length > 2){
-          this.fourd.graph.remove_edge(this.last_edge);
+          this.fourd.graph.add_edge(
+            this.elements[this.elements.length-1], 
+            this.elements[this.elements.length-2]
+          );
         }
-
-        this.second_to_last_edge = this.fourd.graph.add_edge(this.elements[this.elements.length-2], this.elements[this.elements.length-1]); 
-        this.last_edge = this.fourd.graph.add_edge(this.elements[0], this.elements[this.elements.length-1], {directed: false});
-      }
+        if(this.elements.length > 1){
+          this.edges[this.elements.length-1] = this.fourd.graph.add_edge(
+            this.elements[0],
+            v
+          );
+        }
+        return v;
+      };
 
       Cycle.prototype.remove_vertex = function(v){
-      }
+        var i = this.elements.indexOf(v);
+        this.fourd.graph.remove_edge(this.edges[i]);
+        this.fourd.graph.add_edge(
+          this.elements[i-1], 
+          this.elements[i+1]
+        );
+        delete this.elements[i];
+        v.remove();
+      };
 
       $scope.download_graph = () => {
         var filename = prompt('What would you like to call this file? Suggested file ending is .json', 'graph.json');
+        if(!filename){
+          return;
+        }
         var output = JSON.stringify({
           people: $scope.people.map(p => p.toJSON()),
           groups: $scope.groups.map(g => g.toJSON()),
@@ -140,13 +225,12 @@ angular
         });
 
         download(output, filename);
-      }
+      };
 
       document.querySelector('#person-picture').loadPersonPicture = () => {
         var input = document.querySelector('#person-picture');
         var reader = new FileReader();
         reader.onload = (e) => {
-          console.log(reader.result);
           $scope.person_picture = reader.result;
         };
         reader.readAsDataURL(input.files[0]);
@@ -197,11 +281,30 @@ angular
           }
         };
 
-        var vertex = $scope.roles[role_name] = this.fourd.graph.add_vertex({cube: {size: 10, texture: role.picture, label: {text: role_name}}})
+        var vertex = $scope.roles[role_name] = this.fourd.graph.add_vertex({
+          cube: {
+            size: 10, 
+            texture: role.picture
+          },
+          label: {
+            text: role_name
+          }
+        });
         role.vertex = vertex; 
 
-        this.fourd.graph.add_edge(group.vertex, role.vertex, {directed: true});
-        this.fourd.graph.add_edge(role.vertex, person.vertex, {directed: true});
+        group.cycle.add_vertex(vertex);
+
+        this.fourd.graph.add_edge(
+          group.vertex, 
+          role.vertex, 
+          {directed: true}
+        );
+        
+        this.fourd.graph.add_edge(
+          role.vertex, 
+          person.vertex, 
+          {directed: true}
+        );
 
         this.dataset.add(role);
         $scope.roles.push(role);
@@ -211,6 +314,6 @@ angular
         $('#role-start').val(null);
         $('#role-end').val(null);
         $('#role-picture').val(null);
-
+        $scope.role_picture = null;
       };
     }]});

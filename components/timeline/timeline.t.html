@@ -26,7 +26,7 @@
         <hr>
         <li>
           <!--<input type="image" ng-src="img/upload.white.png" ng-click="upload_graph();" alt="upload">-->
-          <input type="image" ng-src="img/download.white.png" ng-click="download_graph();" alt="download`">
+          <input type="image" ng-src="img/download.white.png" ng-click="download_graph();" alt="download">
         </li>
       </ul>
     </nav>
@@ -55,8 +55,8 @@
     <input type="file" id="person-picture" onchange="this.loadPersonPicture();" accept="image/*">
     
     <menu>
-      <button class="btn btn-secondary" ng-click="_person.close();">Cancel</button>
       <button class="btn btn-primary" ng-click="_process_person(); _person.close();">Confirm</button>
+      <button class="btn btn-secondary" ng-click="_person.close();">Cancel</button>
     </menu>
   </form>
 </dialog>
@@ -107,8 +107,8 @@
     <br>
 
     <menu>
-      <button class="btn btn-secondary" ng-click="_group.close();">Cancel</button>
       <button class="btn btn-primary" ng-click="_process_group(); _group.close();">Confirm</button>
+      <button class="btn btn-secondary" ng-click="_group.close();">Cancel</button>
     </menu>
   </form>
 </dialog>
@@ -166,8 +166,8 @@
 
 
     <menu>
-      <button class="btn btn-secondary" ng-click="_role.close();">Cancel</button>
       <button class="btn btn-primary" ng-click="_process_role(); _role.close();">Confirm</button>
+      <button class="btn btn-secondary" ng-click="_role.close();">Cancel</button>
     </menu>
   </form>
 </dialog>

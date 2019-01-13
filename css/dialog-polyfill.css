@@ -1,4 +1,4 @@
-/*
+
 dialog {
   position: absolute;
   left: 0; right: 0;
@@ -36,4 +36,3 @@ dialog.fixed {
   top: 50%;
   transform: translate(0, -50%);
 }
-*/

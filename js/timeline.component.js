@@ -65,15 +65,13 @@ angular
         if(this.elements.length > 2){
           this.fourd.graph.add_edge(
             this.elements[this.elements.length-1], 
-            this.elements[this.elements.length-2],
-            {strength: 2.0}
+            this.elements[this.elements.length-2]
           );
         }
         if(this.elements.length > 1){
           this.edges[this.elements.length-1] = this.fourd.graph.add_edge(
             this.elements[0],
-            v,
-            {strength: 0.5}
+            v
           );
         }
         return v;
@@ -83,8 +81,8 @@ angular
         var i = this.elements.indexOf(v);
         this.fourd.graph.remove_edge(this.edges[i]);
         this.fourd.graph.add_edge(
-          this.elements[i - 1], 
-          this.elements[i + 1]
+          this.elements[i-1], 
+          this.elements[i+1]
         );
         delete this.elements[i];
         v.remove();
@@ -141,23 +139,7 @@ angular
         console.log(vertex);
       });
 
-      var person_to_json = function(){
-        return {
-          name: this.name,
-          birth: this.birth instanceof Date ? this.birth.toJSON() : null,
-          death: this.death instanceof Date ? this.death.toJSON() : null,
-          picture: this.picture
-        };
-      };
 
-      var group_to_json = function(){
-        return {
-          name: this.name,
-          start: this.start instanceof Date ? this.start.toJSON() : null,
-          end: this.end instanceof Date ? this.end.toJSON() : null,
-          picture: this.picture
-        };
-      };
 
       // event handlers for the dialogs
       $scope._process_person = () => {
@@ -177,7 +159,14 @@ angular
           start: birth,
           end: death,
           picture: picture,
-          toJSON: person_to_json
+          toJSON: function(){
+            return {
+              name: this.name,
+              birth: this.birth instanceof Date ? this.birth.toJSON() : null,
+              death: this.death instanceof Date ? this.death.toJSON() : null,
+              picture: this.picture
+            };
+          }
         };
 
         person.vertex = $scope.people[person.name] = this.fourd.graph.add_vertex({cube: {size: 10, texture: picture || 'img/person.white.png'}, label: {text: person.name}});
@@ -191,33 +180,6 @@ angular
         $scope.person_picture = null;
       };
 
-      $scope.import_person = (person) => {
-        person._type = 'person';
-        person.start = person.birth,
-        person.end = person.death,
-        person.toJSON = person_to_json;
-
-        person.vertex = $scope.people[person.name] = this.fourd.graph.add_vertex({cube: {size: 10, texture: person.picture || 'img/person.white.png'}, label: {text: person.name}});
-        this.dataset.add(person);
-        $scope.people.push(person);
-      };
-
-      $scope.import_group = (group) => {
-        group._type = 'group';
-        group.content = group.name;
-        group.toJSON = group_to_json;
-
-        group.cycle = new Cycle({cube: {size: 10, texture: group.picture}, label: {text: group.name}});
-        group.vertex = $scope.groups[group.name] = group.cycle.vertex;
-        this.dataset.add(group);
-        $scope.groups.push(group);
-      };
-
-      $scope.import_role = (role) => {
-        
-      };
-
-
       $scope._process_group = () => {
         var name = $('#group-name').val();
         var start = $('#group-start').val();
@@ -230,7 +192,14 @@ angular
           start: start,
           end: end,
           picture: $scope.group_picture || 'img/group.white.png',
-          toJSON: group_to_json
+          toJSON: function(){
+            return {
+              name: this.name,
+              start: this.start instanceof Date ? this.start.toJSON() : null,
+              end: this.end instanceof Date ? this.end.toJSON() : null,
+              picture: this.picture
+            };
+          }
         };
 
         group.cycle = new Cycle({cube: {size: 10, texture: group.picture}, label: {text: group.name}});
@@ -329,7 +298,8 @@ angular
 
         this.fourd.graph.add_edge(
           group.vertex, 
-          role.vertex
+          role.vertex, 
+          {directed: true}
         );
         
         this.fourd.graph.add_edge(
@@ -340,6 +310,7 @@ angular
 
         this.dataset.add(role);
         $scope.roles.push(role);
+
         $('#role-person').val(null);
         $('#role-group').val(null);
         $('#role-start').val(null);

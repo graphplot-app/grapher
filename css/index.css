@@ -7,11 +7,12 @@
 	color: black;
 	background-color: 0x483D8B;
 	opacity: 0.5;
-	*/
+  */
 }
 
 :root {
   --top: 100px;
+  --color: white;
 }
 
 #timeline {
@@ -69,7 +70,7 @@ ul.menu > li {
 
 ul.menu > li > a {
   display: block;
-  color: white;
+  color: var(--color);
   text-align: center;
   padding: 16px;
   text-decoration: none;
@@ -86,7 +87,7 @@ ul.menu > li > a:hover {
   right: 20px;
   bottom: 20px;
   z-index: -20;
-  color: white;
+  color: var(--color);
 }
 
 .shadow {
@@ -157,7 +158,7 @@ body {
 }
 
 li > label {
-  color: white;
+  color: var(--color);
 }
 
 .blur {
@@ -167,15 +168,15 @@ li > label {
 textarea {
   background-color: transparent;
   border: 1px dashed orange;
-  color: white;
+  color: var(--color);
 }
 
 label {
-  color: white;
+  color: var(--color);
 }
 
 dialog > h3 {
-  color: white;
+  color: var(--color);
 }
 
 dialog {
@@ -195,9 +196,9 @@ dialog[open]
 }
 
 .text-label {
-  color: white;
+  color: var(--color);
 }
 
 table, thead, tbody, tr, th, td {
-  color: white;
+  color: var(--color);
 }

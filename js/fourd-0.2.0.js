@@ -112,26 +112,6 @@ var FourD = function(){
       */
 
       // div on click
-      $(div).on('dblclick', () => {
-        var name = $('div').html();
-        var input = $(`<textarea id="edit-input" value="${name}" draggable="draggable" resizeable="resizeable" />`).appendTo('html > body').get(0);
-        input
-        input.style.position = 'absolute';
-        input.style.left = div.style.left;
-        input.style.top = div.style.top;
-        
-        $(input).on('blur', function(){
-          var value = JSON.parse($(input).val());
-          $(options.vertex.label.element).clear();
-
-          if(value){
-
-          }
-        })
-
-        console.log('input', input)
-      });
-
       var _this = this;
  
       var label = {
@@ -1424,7 +1404,7 @@ function coarser(base, level){
         raycaster.setFromCamera(mouse, camera);
         intersects = raycaster.intersectObjects(scene.children, true);
 
-        if(typeof that.on_mouse_down == 'function'){
+        if(that.on_mouse_down instanceof Function){
           if(intersects.length > 0){
             that.on_mouse_down(intersects[0].object.vertex);
           }else{
@@ -1441,7 +1421,7 @@ function coarser(base, level){
         }
       }
     }
-    // $(element).on('mousedown', onMouseDown);
+    $(element).on('mousedown', onMouseDown);
     
     that._internals = {
       scene: scene,

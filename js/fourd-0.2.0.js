@@ -372,9 +372,8 @@ var FourD = function(){
 
     vertex.edges.forEach(edge => {
       edge.destroy(this.scene);
+      this.E.delete(edge);
     });
-
-    this.E.delete(e);
 
     this.scene.remove(vertex.object);
     this.V.delete(vertex);
@@ -1232,13 +1231,14 @@ function coarser(base, level){
 	};
 	
 	this.deselect = function(){
-		that.selected = null;
-		that.graph.remove_edge(that.camera_edge);
-		delete that.camera_edge;
-		that.graph.remove_vertex(that.camera_vertex);
-		delete that.camera_vertex;
-		
-		that.selected = null;
+    if(that.selected){
+      
+      that.graph.remove_edge(that.camera_edge);
+      delete that.camera_edge;
+      that.graph.remove_vertex(that.camera_vertex);
+      delete that.camera_vertex;
+      that.selected = null;
+    }
 	}
   
   this._internals = {};

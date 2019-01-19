@@ -27,7 +27,7 @@ angular
         };
     
         if(event){
-          fourd.graph[undos[event.command]](...event.info);
+          this.fourd.graph[undos[event.command]](...event.info);
           fourd_graph_future.unshift({command: event.command, info: event.info});
         }else{
           console.log('fourd_history empty.');
@@ -37,7 +37,7 @@ angular
       fourd_graph_future.redo = function(){
         var event = this.shift();
         if(event){
-          fourd.graph[event.command](...event.info);
+          this.fourd.graph[event.command](...event.info);
         }
       };
 
@@ -65,15 +65,13 @@ angular
         if(this.elements.length > 2){
           this.fourd.graph.add_edge(
             this.elements[this.elements.length-1], 
-            this.elements[this.elements.length-2],
-            {strength: 2.0}
+            this.elements[this.elements.length-2]
           );
         }
         if(this.elements.length > 1){
           this.edges[this.elements.length-1] = this.fourd.graph.add_edge(
             this.elements[0],
-            v,
-            {strength: 0.5}
+            v
           );
         }
         return v;
@@ -121,17 +119,21 @@ angular
       $scope._group = document.querySelector('#group');
       $scope._role = document.querySelector('#role');
 
+      $scope._edit_person = document.querySelector('#edit-person');
+      $scope._edit_group = document.querySelector('#edit-group');
+      $scope._edit_role = document.querySelector('#edit-role');
+
       $scope._person_list = document.querySelector('#person-list');
       $scope._group_list = document.querySelector('#group-list');
       $scope._role_list = document.querySelector('#role-list');
 
       // general collections
-      $scope.people = [];
+      $scope.people = []; // i'm surprised this works. 
       $scope.groups = [];
       $scope.roles = [];
 
       // event handlers for selecting vertices
-      $('#display').on('click', (event) => {
+      $('#display').on('click', event => {
         var vertex = this.fourd.resolve_click(event);
         if(vertex){
           this.fourd.select(vertex);
@@ -214,7 +216,6 @@ angular
       };
 
       $scope.import_role = (role) => {
-        
       };
 
 
@@ -269,6 +270,15 @@ angular
         reader.readAsDataURL(input.files[0]);
       };
 
+      document.querySelector('#edit-person-picture').loadPersonPicture = () => {
+        var input = document.querySelector('#edit-person-picture');
+        var reader = new FileReader();
+        reader.onload = (e) => {
+          $scope.edit_person_picture = reader.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+      };
+
       document.querySelector('#group-picture').loadGroupPicture = () => {
         var input = document.querySelector('#group-picture');
         var reader = new FileReader();
@@ -290,13 +300,14 @@ angular
       };
 
       $scope._process_role = () => {
-        var person_id = $('#role-person').val();
-        var group_id= $('#role-group').val();
+        var role_input = $('#role-input').val().split('@');
 
-        var person = $scope.people[person_id];
-        var group = $scope.groups[group_id];
+        var minor = 
+          $scope.people.find(person => person.name == role_input[0]) ||
+          $scope.groups.find(group => group.name == role_input[0]);
+        var major = $scope.groups.find(group => group.name == role_input[1]);
 
-        var role_name = person.name + '@' + group.name;
+        var role_name = minor.name + '@' + major.name;
 
         var role = {
           _type: 'role',
@@ -325,26 +336,73 @@ angular
         });
         role.vertex = vertex; 
 
-        group.cycle.add_vertex(vertex);
+        major.cycle.add_vertex(vertex);
 
         this.fourd.graph.add_edge(
-          group.vertex, 
+          major.vertex, 
           role.vertex
         );
         
         this.fourd.graph.add_edge(
           role.vertex, 
-          person.vertex, 
-          {directed: true}
+          minor.vertex
         );
 
         this.dataset.add(role);
         $scope.roles.push(role);
-        $('#role-person').val(null);
-        $('#role-group').val(null);
+        $('#role-input').val(null);
         $('#role-start').val(null);
         $('#role-end').val(null);
         $('#role-picture').val(null);
         $scope.role_picture = null;
       };
+
+      $scope.delete_person = (id) => {
+        var person = $scope.people.find(p => p.id == id);
+        this.dataset.remove(person.id);
+        this.fourd.graph.remove_vertex(person.vertex);
+        delete $scope.people[$scope.people.indexOf(person)];
+        $scope.people = $scope.people.splice($scope.indexOf(person), 1);
+        delete person;
+      };
+
+      $scope.delete_group = (id) => {
+        var group = $scope.groups.find(g => g.id == id);
+        this.dataset.remove(group.id);
+        group.cycle.remove();
+        this.fourd.graph.remove_vertex(group.vertex);
+        $scope.groups.splice($scope.indexOf(group), 1);
+      };
+
+      $scope.edit_person = (id) => {
+        var person = $scope.people.find(p => p.id == id);
+        $('#edit-person-name').val(person.name);
+        $('#edit-person-birth').val(person.birth);
+        $('#edit-person-death').val(person.death);
+        $scope._edit_person.showModal();
+      };
+
+      $scope.process_edit_person = () => {
+        person.name = $('#edit-person-name').val();
+        person.birth = $('#edit-person-birth').val();
+        person.death = $('#edit-person-death').val();
+      
+        if($scope.edit_person_picture){
+          person.vertex.set({texture: $scope.edit_person_picture, text: person.name});
+        }
+
+        $('#edit-person-name').val(null);
+        $('#edit-person-birth').val(null);
+        $('#edit-person-death').val(null);
+
+      };
+
+      $scope.edit_group = (id) => {
+        var group = $scope.groups.find(g => g.id == id);
+        $('#edit-person-name').val(group.name);
+        $('#edit-person-start').val(group.start);
+        $('#edit-person-end').val(group.end);
+        $scope._edit_person.showModal();
+      };
+
     }]});

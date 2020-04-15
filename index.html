@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="casgApp">
+  <head>
+    <base href="/social-cartography/" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>CASG - Collect Aggregate Share Graphs</title>
+
+    <!-- General dependencies -->
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="angular.min.js"></script>
+    <script type="text/javascript" src="angular-route.min.js"></script>
+    <script type="text/javascript" src="angular-sanitize.min.js"></script>
+
+    <script type="text/javascript" src="popper.min.js"></script>
+    <script type="text/javascript" src="bootstrap.min.js"></script>
+    <script type="text/javascript" src="ui-bootstrap-tpls.js"></script>
+
+    <!-- fourd dependencies -->
+    <script type="text/javascript" src="fourd/r90.three.min.js"></script>
+    <script type="text/javascript" src="fourd/FlyControls.js"></script>
+    <script type="text/javascript" src="fourd/OrbitControls.js"></script>
+    <script type="text/javascript" src="fourd/THREEx.WindowResize.js"></script>
+    <script type="text/javascript" src="fourd/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="fourd/fourd.js"></script>
+    <script type="text/javascript" src="fourd/jquery.fourd.js"></script>
+
+    <!-- casg dependencies -->
+    <script type="text/javascript" src="casg/peg.js"></script>
+    <script type="text/javascript" src="casg/remotestorage.js"></script>
+    <script type="text/javascript" src="casg/widget.js"></script>
+    <script type="text/javascript" src="casg/openpgp.min.js"></script>
+
+    <script type="text/javascript" src="casg/casgApp.js"></script>
+    <script type="text/javascript" src="casg/casgApp.config.js"></script>
+
+    <!-- css includes -->
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="ui-bootstrap-csp.css">
+    <link rel="stylesheet" href="casg/casg.css">
+  </head>
+  <body ng-controller="MainCtrl">
+    <div class="container-fluid">
+      <div class="row">
+        <nav class="col-sm-3">
+          <header>
+            <h5><a href="#">create, aggregate & share graphs</a></h5>
+            <i>a Social Cartography undertaking</i>
+          </header>
+          <hr>
+
+          <div class="menu">
+            <ul>
+              <label>Storage Management</label>
+              <li><a ng-if="RS.remote.userAddress" ng-href="#" ng-click="configureStorage();">{{RS.remote.userAddress}}</a></li>
+              <li><a ng-if="!RS.remote.userAddress" href="#" ng-click="configureStorage()">Configure RemoteStorage</a></li>
+              <li id="remote-storage-configuration"></li>
+            </ul>
+            
+            <ul>
+              <label>Key Management</label>
+
+              <ul class="itemList">
+                <label>
+                  Private Keys
+                  <a href="#" ng-click="generateKeyPair()" data-toggle="tooltip" title="Generate Key Pair">+</a>
+                  <a href="/social-cartography/uploadKeyPair" data-toggle="tooltip" title="Import Key Pair">↑</a> 
+
+                </label>
+                <li ng-repeat="keyPair in keyPairs">
+                  <a href="#" data-toggle="tooltip" title="Activate Key Pair" ng-if="keyPair && (currentKeyPair != keyPair)" ng-click="setCurrentKeyPair(keyPair)">&#128275;</a>
+                  <a href="#" data-toggle="tooltip" title="Deactivate Key Pair" ng-if="keyPair && (currentKeyPair == keyPair)" ng-click="setCurrentKeyPair(null)">&#128274;</a>
+                  <a href="#" data-toggle="tooltip" title="Export Public Key to Device" ng-if="keyPair" ng-click="exportToDevice(keyPair)">↓</a>
+                  <a href="#" data-toggle="tooltip" title="Share Public Key to Web" ng-if="keyPair" ng-click="exportToWeb(keyPair)">→</a>
+                  <a href="#" data-toggle="tooltip" title="Delete Key Pair" ng-if="keyPair" ng-click="removeKeyPair(keyPair)">✗</a>
+                  {{keyPair.title}}
+                </li>
+              </ul>
+
+              <ul>
+                <label>Own Public Keys</label>
+                <li ng-repeat="publicKey in ownPublicKeys">
+                  <a href="#" data-toggle="tooltip" title="Delete Public Key Listing" ng-if="publicKey" ng-click="removePublicKeyListing(publicKey)">✗</a>
+                  <a href="#" target="_blank" ng-href="{{publicKey.publicUrl}}" ng-if="publicKey">{{publicKey.title}}</a>
+                </li>
+              </ul>
+
+              <ul>
+                <label>
+                  Others' Public Keys
+                  <a href="#" data-toggle="tooltip" title="Import Foreign Public Key" ng-click="importPublicKey()">←</a>
+                </label>
+                <li ng-repeat="publicKey in othersPublicKeys">
+                  <input type="checkbox" ng-model="selectedPublicKeys[publicKey]" ng-if="publicKey" />
+                  <a href="#" data-toggle="tooltip" title="Remove Foreign Public Key" ng-if="publicKey" ng-click="removeOthersPublicKey(publicKey)">✗</a>
+                  {{publicKey.title}}
+                </li>
+              </ul>
+            </ul>
+            
+            <ul>
+              <label>
+                Graphs
+                <a href="#" ng-click="loadGraphs()">↻</a>
+                <a href="#" ng-click="createGraph()">+</a>
+              </label>
+              <li><a href="#" ng-click="saveGraph()">Save</a></li>
+              <li ng-repeat="graph in graphs">
+                <a ng-if="graph" href="#" data-toggle="tooltip" title="Load" ng-click="playGraph(graph)">►</a>
+                <a ng-if="graph" href="#" data-toggle="tooltip" title="Remove Graph" ng-click="removeGraph(graph)">✗</a>
+                {{graph.title}}
+              </li>
+            </ul>
+            
+            <ul>
+              <label>Entity Editing</label>
+              {{Entity.all.length}} Entities
+              <li>
+                <a href="#" ng-click="gatherAndProcess()">Enter Command</a>
+              </li>
+            </ul>
+            
+            <ul>
+              <label>Graph Editing</label>
+              <li>
+                <label>Vertices
+                  <a href="#" ng-click="addVertex()">+</a>
+                </label>
+                <ul>
+                  <li ng-repeat="vertex in vertices">
+                    <a ng-if="vertex !== undefined" href="#" ng-click="removeVertex(vertex)">✗</a>
+                    {{vertex}} - {{vertex.options.label.text || "Unnamed Vertex"}}
+                  </li>
+                </ul>
+              </li>
+
+              <li>
+                <label>Edges
+                  <a href="#" ng-click="addEdge()">+</a>
+                </label>
+                <ul>
+                  <li ng-repeat="edge in edges">
+                    <a ng-if="edge !== undefined" href="#" ng-click="removeEdge(edge)">✗</a>
+                    {{edge}}
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <div ng-view class="col-sm-9"></div>
+      </div>
+    </div>
+  </body>
+</html>

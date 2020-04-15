@@ -1,0 +1,57 @@
+ul {
+  list-style: inside;
+}
+
+li {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+li > a {
+  color: #007bff;
+}
+
+.itemList > li {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+label {
+  padding-top: 3px;
+  font-weight: bold;
+}
+
+html, body {
+  height: 100%;
+}
+
+header {
+  position: static;
+  top: 0;
+  left: 0;
+}
+
+#display {
+  position: relative;
+  overflow: hidden;
+}
+
+#labels {
+  position: absolute;  /* let us position ourself inside the container */
+  left: 0;             /* make our position the top left of the container */
+  top: 0;
+  color: white;
+}
+
+canvas {
+  display: block;
+}
+
+.text-label {
+  position: absolute;  /* let us position them inside the container */
+  left: 0;             /* make their default position the top left of the container */
+  top: 0;
+  cursor: pointer;     /* change the cursor to a hand when over us */
+  user-select: none;   /* don't let the text get selected */
+  color: #007bff;
+}

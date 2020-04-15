@@ -24,7 +24,11 @@ class PGPLoader {
     const { keys: [privateKey] } = await openpgp.key.readArmored(this.privateKeyArmored);
     if(privateKey){
       this.privateKey = privateKey;
-      this.privateKey.decrypt(this.passphrase);
+      try{
+        this.privateKey.decrypt(this.passphrase);
+      }catch(e){
+        throw "Wrong Password";
+      }
     }
   }
 
@@ -495,8 +499,12 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function
     }
 
     var phrase = prompt(`${keyPair.title}'s Passphrase?`);
-    await pgp.setKey(keyPair.privateKeyArmored, phrase)
-    $scope.currentKeyPair = keyPair;
+    try{
+      await pgp.setKey(keyPair.privateKeyArmored, phrase)
+      $scope.currentKeyPair = keyPair;
+    }catch(e){
+      alert('Opening Key failed!')
+    }
     $scope.$apply();
 
     // $scope.loadGraphs();
@@ -731,8 +739,17 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function
 
   $scope.createGraph = async function(){
 
+    var $display = $('#display');
+    $scope.$fourd = new FourD();
+    $scope.$fourd.init($display, {
+      border: '1px solid 0x007bff',
+      width: $display.width(),
+      height: $display.height(),
+      background: 0xffffff
+    });
+
     $scope.$fourd.graph.clear();
-    
+
     if($scope.keyPairs.length == 0){
       alert('Please create a key pair first, and activate it by clicking the lock and confirming the passphrase.');
       return;
@@ -881,7 +898,18 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function
   }
 
   $scope.playGraph = function(graph){
+    var $display = $('#display');
+    $scope.$fourd = new FourD();
+    $scope.$fourd.init($display, {
+      border: '1px solid 0x007bff',
+      width: $display.width(),
+      height: $display.height(),
+      background: 0xffffff
+    });
+
     $scope.$fourd.graph.clear();
+    $scope.currentGraph = graph;
+
     graph.commands.forEach(async command => {
       $scope.process(command);
       await new Promise((resolve, reject) => {

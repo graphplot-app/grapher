@@ -107,9 +107,10 @@
               </label>
               <li><a href="#" ng-click="saveGraph()">Save</a></li>
               <li ng-repeat="graph in graphs">
-                <a ng-if="graph" href="#" data-toggle="tooltip" title="Load" ng-click="playGraph(graph)">►</a>
+                <a ng-if="graph" href="#" data-toggle="tooltip" title="Load" ng-click="currentGraph = graph; playGraph(graph);">►</a>
                 <a ng-if="graph" href="#" data-toggle="tooltip" title="Remove Graph" ng-click="removeGraph(graph)">✗</a>
                 {{graph.title}}
+                <i ng-if="graph && (currentGraph == graph)">*</i>
               </li>
             </ul>
             

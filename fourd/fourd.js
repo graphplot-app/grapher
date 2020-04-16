@@ -870,10 +870,9 @@ var FourD = function(){
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize( settings.width, settings.height );
     
-    if(!$(element).find(renderer.domElement)){
-      $(element).append( renderer.domElement );
-    }  
-
+    $(element).append( renderer.domElement );
+    this.canvas = renderer.domElement;
+  
     $(element).resize(function(){
       renderer.setSize($(element).width(), $(element).height());
       renderer.setPixelRatio($(element).width(), $(element).height());

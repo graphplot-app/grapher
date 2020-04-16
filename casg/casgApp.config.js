@@ -1,6 +1,7 @@
 var casgApp = angular.module("casgApp");
 
 casgApp.config(function($routeProvider, $locationProvider){
+  /*
   $routeProvider
   .when('/', {
     templateUrl: 'casg/graph.html'
@@ -19,4 +20,5 @@ casgApp.config(function($routeProvider, $locationProvider){
   })
 
   $locationProvider.html5Mode({enabled: true, requireBase: true, rewriteLinks: true});
+  */
 })

@@ -857,7 +857,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
   $scope.removeGraph = function(graph){
     graph.remove();
     if(graph == $scope.currentGraph){
-      $scope.
+      $scope.currentGraph = null;
       delete $scope.graphs[$scope.graphs.indexOf(graph)];
     }
   }

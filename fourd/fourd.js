@@ -865,16 +865,18 @@ var FourD = function(){
     }
     */
     
-    renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer({
+      canvas: document.querySelector('#canvas')
+    });
     renderer.setClearColor(settings.background);
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize( settings.width, settings.height );
+    renderer.setSize( $(element).width(), document.body.clientHeight );
   
     $(element).resize(function(){
-      renderer.setSize($(element).width(), $(element).height());
-      renderer.setPixelRatio($(element).width(), $(element).height());
+      renderer.setSize($(element).width(), document.body.clientHeight);
+      renderer.setPixelRatio($(element).width(), document.body.clientHeight);
     })
-    document.querySelector('#display').appendChild(renderer.domElement);
+    // document.querySelector('#display').appendChild(renderer.domElement);
     $(renderer.domElement).css({
       margin: 0,
       padding: 0,

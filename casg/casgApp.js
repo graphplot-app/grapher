@@ -1018,7 +1018,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     this.texture = info.texture;
 
     this.vertex = $scope.$fourd.graph.add_vertex({
-      cube: {size: 10, color: 0x000000}, 
+      cube: {size: 5, color: 0x000000}, 
       label: {offset: 10, text: this.name}
     });
 
@@ -1304,6 +1304,12 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     $scope.currentGraph.commands.push(input);
 
     var parts = input.split('@');
+
+    if(parts.length == 1){
+      $scope.add_person({name: parts[0], color: 0x000000});
+      return;
+    }
+
     var sub_name = parts[0];
     var super_name = parts[1];
 

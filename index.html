@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
-    <title>CASG - Collect Aggregate Share Graphs</title>
+    <title>CASG - Create, Aggregate Share Graphs</title>
 
     <!-- General dependencies -->
     <script type="text/javascript" src="jquery.min.js"></script>
@@ -36,7 +36,7 @@
       <div class="row">
         <nav class="col-sm-3">
           <header>
-            <h5><a href="#">create, aggregate & share graphs</a></h5>
+            <h5><a href="#">create, <s>aggregate</s> & <s>share</s> graphs</a></h5>
             <i>a Social Cartography undertaking</i>
           </header>
           <hr>
@@ -93,8 +93,8 @@
             <ul>
               <label>
                 Graphs
-                <a href="#" ng-click="loadGraphs()">↻</a>
                 <a href="#" ng-click="createGraph()">+</a>
+                <a href="#" ng-click="loadGraphs()">↻</a>
               </label>
               <li><a href="#" ng-click="saveGraph()">Save</a></li>
               <li ng-repeat="graph in graphs">
@@ -113,6 +113,7 @@
               </li>
             </ul>
             
+            <!--
             <ul>
               <label>Graph Editing</label>
               <li>
@@ -139,6 +140,7 @@
                 </ul>
               </li>
             </ul>
+            -->
           </div>
         </nav>
 

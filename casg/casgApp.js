@@ -686,6 +686,8 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
 
       var keyPair = $scope.RS.keyPairs.store(privateKey);
       $scope.keyPairs.push(keyPair);
+
+      $scope.showKeyPairUpload = false;
       $scope.$apply();
     }
 

@@ -59,7 +59,12 @@
                 <label>
                   Private Keys
                   <a href="#" ng-click="generateKeyPair()" data-toggle="tooltip" title="Generate Key Pair">+</a>
-                  <!--<a href="#" data-toggle="tooltip" title="Import Key Pair">↑</a> -->
+                  <a href="#" ng-init="showKeyPairUpload = false" data-toggle="tooltip" title="Import Key Pair" ng-click="showKeyPairUpload = true;">↑</a>
+                  <div ng-show="showKeyPairUpload">
+                    <input id="key-pair-upload" type="file">
+                    <a href="#" ng-click="importKeyPair()">Import</a>
+                  </div>
+                  <!-- -->
 
                 </label>
                 <li ng-repeat="keyPair in keyPairs">

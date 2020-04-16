@@ -147,8 +147,6 @@ var FourD = function(){
       display.appendChild(div);
 
       div.className = 'text-label';
-      div.style.width = 100;
-      div.style.height = 100;
       div.innerHTML = options.text;
       div.style.top = 0;
       div.style.left = 0;
@@ -866,9 +864,11 @@ var FourD = function(){
     */
     
     renderer = new THREE.WebGLRenderer({
-      canvas: document.querySelector('#canvas')
+      canvas: document.querySelector('#canvas'),
+      alpha: true
     });
-    renderer.setClearColor(settings.background);
+    renderer.setClearColor(settings.background, 0);
+    renderer.setAl
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize( $(element).width(), document.body.clientHeight );
   

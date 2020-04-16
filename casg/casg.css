@@ -34,6 +34,9 @@ header {
 #display {
   position: relative;
   overflow: hidden;
+
+  background-size: 40px 40px;
+  background-image: radial-gradient(circle, #269 1px, rgba(0, 0, 0, 0) 1px);
 }
 
 #labels {
@@ -53,5 +56,8 @@ canvas {
   top: 0;
   cursor: pointer;     /* change the cursor to a hand when over us */
   user-select: none;   /* don't let the text get selected */
-  color: #007bff;
+  color: white;
+  font-size: 12px;
+  line-height: normal;
+  background-color: rgba(0, 0, 0, 0.5);
 }

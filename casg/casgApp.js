@@ -410,10 +410,15 @@ var Graphs = {
               var blob = new Blob([file.data], { type: file.mimeType });
               const reader = new FileReader();
               reader.addEventListener('loadend', async () => {
-                var graphString = await keyPair.decrypt(reader.result, keyPair.publicKeyArmored);
-                var graph = JSON.parse(graphString);
-                await this._augment(graph, listing);
-                resolve(graph);
+                keyPair.decrypt(reader.result, keyPair.publicKeyArmored).then(async graphString => {
+                  if(graphString){
+                    var graph = JSON.parse(graphString);
+                    await this._augment(graph, listing);
+                    resolve(graph);
+                  }else{
+                    reject("Could not decrypt graph with supplied key!");
+                  }
+                }, reject);
               });
               reader.readAsText(blob);
             })
@@ -751,6 +756,9 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
       return;
     }
 
+    $scope.edges.forEach(edge => $scope.removeEdge(edge))
+    $scope.vertices.forEach(vertex => $scope.removeVertex(vertex));
+
     $scope.$fourd.clear();
 
     $scope.Role.all.splice(0, $scope.Role.all.length);
@@ -884,7 +892,9 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
             .then(graph => {
               resolve(graph);
               return graph;
-            }, reject)
+            }, (reason) => {
+              reject({title: li, reason})
+            })
           })
         }
       ))
@@ -1290,6 +1300,8 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
         return;
       }
     }
+
+    $scope.currentGraph.commands.push(input);
 
     var parts = input.split('@');
     var sub_name = parts[0];

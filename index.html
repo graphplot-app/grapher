@@ -99,12 +99,13 @@
                 <a href="#" ng-click="createGraph()">+</a>
                 <a href="#" ng-click="loadGraphs()">↻</a>
               </label>
-              <li><a href="#" ng-click="saveGraph()">Save</a></li>
+              <li ng-if="currentGraph && currentKeyPair"><a href="#" ng-click="saveGraph()">Save</a></li>
               <li ng-repeat="graph in graphs">
                 <a ng-if="graph" href="#" data-toggle="tooltip" title="Load" ng-click="currentGraph = graph; playGraph(graph);">►</a>
                 <a ng-if="graph" href="#" data-toggle="tooltip" title="Remove Graph" ng-click="removeGraph(graph)">✗</a>
-                {{graph.title}}
+                
                 <i ng-if="graph && (currentGraph == graph)">*</i>
+                {{graph.title}}
               </li>
             </ul>
             
@@ -112,7 +113,7 @@
               <label>Entity Editing</label>
               {{Entity.all.length}} Entities
               <li>
-                <a href="#" ng-click="gatherAndProcess()">Enter Command</a>
+                <a ng-if="currentGraph" href="#" ng-click="gatherAndProcess()">Enter Command</a>
               </li>
             </ul>
             

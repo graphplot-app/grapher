@@ -865,13 +865,12 @@ var FourD = function(){
     }
     */
     
-    renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer({
+      canvas: document.querySelector('#canvas')
+    });
     renderer.setClearColor(settings.background);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize( settings.width, settings.height );
-    
-    $(element).append( renderer.domElement );
-    this.canvas = renderer.domElement;
   
     $(element).resize(function(){
       renderer.setSize($(element).width(), $(element).height());

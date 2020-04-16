@@ -477,11 +477,30 @@ var Counter = function*(){
   }
 }
 
-var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function($scope, $http, $element){
+var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', async function($scope, $http, $location){
   // RemoteStorage Variables and Functions
   $('[data-toggle="tooltip"]').tooltip();
   $scope.currentKeyPair = null;
   $scope.graphs = [];
+
+  $scope.initFourD = function(){
+
+    if($scope.$fourd){
+      delete $scope.$fourd;
+    }
+
+    var $display = $('#display');
+    $scope.$fourd = new FourD();
+    $scope.$fourd.init($display, {
+      border: '1px solid 0x007bff',
+      width: $display.width(),
+      height: $display.height(),
+      background: 0xffffff
+    });
+  }
+
+  $location.path('/graph')
+  $scope.initFourD();
 
   $scope.setCurrentKeyPair = async function(keyPair){
     if(keyPair === null){
@@ -556,20 +575,6 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function
 
     $scope.$apply();
   })
-    
-  $scope.initFourD = function(){
-
-    $scope.$display = document.querySelector("#display");
-
-    $scope.$fourd = new FourD();
-    $scope.$fourd.init($scope.$display, {
-      border: '1px solid 0x007bff',
-      width: $($scope.$display).width(),
-      height: $($scope.$display).height(),
-      background: 0xffffff
-    });
-    $('#display').append($scope.$fourd.canvas)
-  }
 
   $scope.clearStorage = function(){
     var ok = confirm("This will delete all storage!!! All Storage!!! Continue?");
@@ -761,7 +766,6 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function
 
   $scope.createGraph = async function(){
     $scope.clearGraph();
-    $scope.initFourD();
 
     if($scope.keyPairs.length == 0){
       alert('Please create a key pair first, and activate it by clicking the lock and confirming the passphrase.');
@@ -900,7 +904,6 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function
 
   $scope.playGraph = function(graph){
     $scope.clearGraph();
-    $scope.initFourD();
 
     $scope.currentGraph = graph;
 

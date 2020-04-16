@@ -103,11 +103,11 @@
               <label>
                 Graphs
                 <a href="#" ng-click="loadGraphs()">↻</a>
-                <a href="/graph" ng-click="createGraph()">+</a>
+                <a href="#" ng-click="createGraph()">+</a>
               </label>
               <li><a href="#" ng-click="saveGraph()">Save</a></li>
               <li ng-repeat="graph in graphs">
-                <a ng-if="graph" href="/graph" data-toggle="tooltip" title="Load" ng-click="currentGraph = graph; playGraph(graph);">►</a>
+                <a ng-if="graph" href="#" data-toggle="tooltip" title="Load" ng-click="currentGraph = graph; playGraph(graph);">►</a>
                 <a ng-if="graph" href="#" data-toggle="tooltip" title="Remove Graph" ng-click="removeGraph(graph)">✗</a>
                 {{graph.title}}
                 <i ng-if="graph && (currentGraph == graph)">*</i>
@@ -151,7 +151,7 @@
           </div>
         </nav>
 
-        <div ng-view class="col-sm-9 v-100 h-100"></div>
+        <ng-view class="col-sm-9 v-100 h-100"></ng-view>>
       </div>
     </div>
   </body>

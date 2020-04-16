@@ -498,8 +498,6 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
       background: 0xffffff
     });
   }
-
-  $location.path('/graph')
   $scope.initFourD();
 
   $scope.setCurrentKeyPair = async function(keyPair){
@@ -765,7 +763,11 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
   }
 
   $scope.createGraph = async function(){
-    $scope.clearGraph();
+    if($scope.$fourd){
+      $scope.clearGraph();
+    }else{
+      $scope.initFourD();
+    }
 
     if($scope.keyPairs.length == 0){
       alert('Please create a key pair first, and activate it by clicking the lock and confirming the passphrase.');
@@ -854,7 +856,10 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
 
   $scope.removeGraph = function(graph){
     graph.remove();
-    delete $scope.graphs[$scope.graphs.indexOf(graph)];
+    if(graph == $scope.currentGraph){
+      $scope.
+      delete $scope.graphs[$scope.graphs.indexOf(graph)];
+    }
   }
 
   $scope.loadGraphs = async function(){
@@ -903,8 +908,11 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
   }
 
   $scope.playGraph = function(graph){
-    $scope.clearGraph();
-
+    if($scope.$fourd){
+      $scope.clearGraph();
+    }else{
+      $scope.initFourD();
+    }
     $scope.currentGraph = graph;
 
     $scope.currentGraph.commands.forEach(async command => {
@@ -1000,7 +1008,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     this.texture = info.texture;
 
     this.vertex = $scope.$fourd.graph.add_vertex({
-      cube: {size: 10, texture: info.texture}, 
+      cube: {size: 10, color: 0x000000}, 
       label: {offset: 10, text: this.name}
     });
 
@@ -1058,7 +1066,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     this.vertex = $scope.$fourd.graph.add_vertex({
       cube: {
         size: 10,
-        texture: info.texture
+        color: 0x000000
       },
       label: {
         text: info.name,
@@ -1120,7 +1128,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     this.vertex = $scope.$fourd.graph.add_vertex({
       cube: {
         size: 10,
-        texture: info.texture
+        color: 0x000000
       },
       label: {
         text: info.name,
@@ -1300,7 +1308,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     }
 
     if(!sub_component){
-      sub_component = $scope.add_person({name: sub_name, texture: 'img/person.png'});
+      sub_component = $scope.add_person({name: sub_name, color: 0x000000});
     }
 
     try{
@@ -1309,7 +1317,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
         super_component = $scope.Person.all.find(g => g.name === super_name);
       }
       if(!super_component && super_name){
-        super_component = $scope.add_group({name: super_name, texture: 'img/group.png'});
+        super_component = $scope.add_group({name: super_name, color: 0x000000});
       }
     }catch(e){
       console.error(e);
@@ -1317,7 +1325,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
 
     console.assert(sub_component, "After all this work, no sub component");
     console.assert(super_component, "After all this work, no super component")
-    var role = $scope.add_role({'person': sub_component, 'group': super_component, texture: 'img/role.png'});
+    var role = $scope.add_role({'person': sub_component, 'group': super_component, color: 0x000000});
     
   }
 }]);

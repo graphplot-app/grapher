@@ -865,9 +865,7 @@ var FourD = function(){
     }
     */
     
-    renderer = new THREE.WebGLRenderer({
-      canvas: document.querySelector('#canvas')
-    });
+    renderer = new THREE.WebGLRenderer();
     renderer.setClearColor(settings.background);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize( settings.width, settings.height );
@@ -876,6 +874,7 @@ var FourD = function(){
       renderer.setSize($(element).width(), $(element).height());
       renderer.setPixelRatio($(element).width(), $(element).height());
     })
+    document.querySelector('#display').appendChild(renderer.domElement);
     $(renderer.domElement).css({
       margin: 0,
       padding: 0,

@@ -911,11 +911,9 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
   $scope.gatherAndProcess = function(){
 
     var commandPrompt = `Command: \n
-    Either \n
-    * "Entity" or \n
-    * "SubEntity@SuperEntity"`;
+    Either "Entity" or "SubEntity@SuperEntity"`;
 
-    var command = prompt();
+    var command = prompt(commandPrompt);
     if(command){
       $scope.process(command);
     }else{

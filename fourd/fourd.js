@@ -187,7 +187,7 @@ var FourD = function(){
           return x;
         },
         remove: () => {
-          display.removeChild(div);
+          $(div).remove();
         }
       };
 

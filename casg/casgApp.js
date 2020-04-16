@@ -754,20 +754,35 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
   }
 
   $scope.clearGraph = function(){
+
+    $('.text-label').remove();
+
+    delete $scope.Role.all;
+    $scope.Role.all = [];
+
+    delete $scope.Person.all;
+    $scope.Person.all = [];
+
+    delete $scope.Group.all;
+    $scope.Group.all = [];
+
+    delete $scope.Entity.all;
+    $scope.Entity.all = [];
+
+    $scope.edges.forEach(edge => $scope.removeEdge(edge))
+    delete $scope.edges;
+    $scope.edges = [];
+  
+    $scope.vertices.forEach(vertex => $scope.removeVertex(vertex));
+    delete $scope.vertices;
+    $scope.vertices = [];
+
     if(!$scope.$fourd){
       return;
     }
 
-    $scope.edges.forEach(edge => $scope.removeEdge(edge))
-    $scope.vertices.forEach(vertex => $scope.removeVertex(vertex));
 
     $scope.$fourd.clear();
-
-    $scope.Role.all.splice(0, $scope.Role.all.length);
-    $scope.Person.all.splice(0, $scope.Person.all.length);
-    $scope.Group.all.splice(0, $scope.Group.all.length);
-
-    $scope.Entity.all.splice(0, $scope.Entity.all.length);
 
     $scope.Entity.id = 0;
   }
@@ -917,6 +932,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
 
     var command = prompt(commandPrompt);
     if(command){
+      $scope.currentGraph.commands.push(command);
       $scope.process(command);
     }else{
       console.debug('aborted');
@@ -1271,13 +1287,12 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
         }
     }
 
-    console.log(person, group);
     var role = new $scope.Role(info); // creates its own vertex, incosistent with Person and Group!!!
     if(typeof id_callback == 'function') id_callback(role.id);
 
     // history
     role.info = {person: person, group: group};
-    history.push({command: 'add_role', info: role.info, id: role.id});
+    // history.push({command: 'add_role', info: role.info, id: role.id});
     return role;
   };
 
@@ -1307,8 +1322,6 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
       }
     }
 
-    $scope.currentGraph.commands.push(input);
-
     var parts = input.split('@');
 
     if(parts.length == 1){
@@ -1317,6 +1330,11 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     }
 
     var sub_name = parts[0];
+
+    if(parts.length < 2){
+      return;
+    }
+
     var super_name = parts[1];
 
     var sub_component, super_component;
@@ -1329,15 +1347,16 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
       }
     }catch(e){
       console.error(e);
+      return;
     }
 
-    if(!sub_component){
+    if(sub_component === undefined){
       sub_component = $scope.add_person({name: sub_name, color: 0x000000});
     }
 
     try{
       super_component = $scope.Group.all.find(g => g.name === super_name);
-      if(!super_component){
+      if(super_component === undefined){
         super_component = $scope.Person.all.find(g => g.name === super_name);
       }
       if(!super_component && super_name){

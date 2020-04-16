@@ -483,14 +483,6 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function
   $scope.currentKeyPair = null;
   $scope.graphs = [];
 
-  var $display = $('#display');
-  $scope.$fourd = new FourD();
-  $scope.$fourd.init($display, {
-    width: $display.parent().width(),
-    height: $(document).height(),
-    background: 0xffffff
-  });
-
   $scope.setCurrentKeyPair = async function(keyPair){
     if(keyPair === null){
       pgp.unsetKey();
@@ -737,18 +729,21 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function
     delete $scope.othersPublicKeys[$scope.othersPublicKeys.indexOf(publicKey)];
   }
 
+  $scope.clearGraph = function(){
+    $scope.$fourd.clear();
+
+    $scope.Role.all.splice(0, $scope.Role.all.length);
+    $scope.Person.all.splice(0, $scope.Person.all.length);
+    $scope.Group.all.splice(0, $scope.Group.all.length);
+
+    $scope.Entity.all.splice(0, $scope.Entity.all.length);
+
+    $scope.Entity.id = 0;
+  }
+
   $scope.createGraph = async function(){
-
-    var $display = $('#display');
-    $scope.$fourd = new FourD();
-    $scope.$fourd.init($display, {
-      border: '1px solid 0x007bff',
-      width: $display.width(),
-      height: $display.height(),
-      background: 0xffffff
-    });
-
-    $scope.$fourd.graph.clear();
+    $scope.clearGraph();
+    $scope.init$fourd();
 
     if($scope.keyPairs.length == 0){
       alert('Please create a key pair first, and activate it by clicking the lock and confirming the passphrase.');
@@ -796,9 +791,6 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function
     }
 
     $scope.vertices.push(vertex);
-    $scope.currentGraph.commands.push(JSON.stringify(['add_edge', label]));
-    $scope.RS.graphs.storeGraph($scope.currentKeyPair, $scope.currentGraph);
-
     return vertex;
   }
 
@@ -824,9 +816,6 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function
     edge.title = `(${source}, ${target})`;
 
     $scope.edges.push(edge);
-    $scope.currentGraph.commands.push(JSON.stringify(['add_edge', parseInt(source), parseInt(target)]));
-    $scope.RS.graphs.storeGraph($scope.currentKeyPair, $scope.currentGraph);
-
     return edge;
   }
 
@@ -834,19 +823,11 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function
     vertex.remove();
     $scope.$fourd.graph.remove_vertex(vertex)
     delete $scope.vertices[$scope.vertices.indexOf(vertex)];
-
-    $scope.currentGraph.commands.push(JSON.stringify(['remove_vertex', vertex]));
-
-    $scope.RS.graphs.storeGraph($scope.currentKeyPair, $scope.currentGraph);
   }
 
   $scope.removeEdge = function(edge){
     $scope.$fourd.graph.remove_edge(edge.id);
     delete $scope.edges[$scope.edges.indexOf(edge)]
-
-    $scope.currentGraph.commands.push(JSON.stringify(['remove_edge', edge.id]));
-
-    $scope.RS.graphs.storeGraph($scope.currentKeyPair, $scope.currentGraph);
   }
 
   $scope.removeGraph = function(graph){
@@ -892,25 +873,33 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function
 
   $scope.gatherAndProcess = function(){
     var command = prompt("Command");
-    $scope.process(command);
-    $scope.currentGraph.commands.push(command);
-    $scope.RS.graphs.storeGraph($scope.currentKeyPair, $scope.currentGraph);
+    if(command){
+      $scope.process(command);
+    }else{
+      console.debug('aborted');
+    }
   }
 
-  $scope.playGraph = function(graph){
-    var $display = $('#display');
-    $scope.$fourd = new FourD();
-    $scope.$fourd.init($display, {
+  $scope.$display = $('#display');
+
+  $scope.$fourd = new FourD();
+  $scope.init$fourd = function(){
+    $scope.$fourd.init($scope.$display, {
       border: '1px solid 0x007bff',
-      width: $display.width(),
-      height: $display.height(),
+      width: $scope.$display.width(),
+      height: $scope.$display.height(),
       background: 0xffffff
     });
+  }
+  $scope.init$fourd();
 
-    $scope.$fourd.graph.clear();
+  $scope.playGraph = function(graph){
+    $scope.clearGraph();
+    $scope.init$fourd();
+
     $scope.currentGraph = graph;
 
-    graph.commands.forEach(async command => {
+    $scope.currentGraph.commands.forEach(async command => {
       $scope.process(command);
       await new Promise((resolve, reject) => {
         setTimeout(resolve, 250)
@@ -1101,7 +1090,6 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', async function
     this.vertex.set(options);
   };
 
-  var group_id = 0;
   $scope.Group = function(info){
     this.options = info;
     this.id = info.id !== undefined ? info.id : $scope.Entity.id++;

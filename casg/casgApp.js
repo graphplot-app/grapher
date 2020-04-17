@@ -823,6 +823,84 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     return $scope.currentGraph;
   }
 
+  $scope.cloneGraph = async function(graph){
+    if($scope.keyPairs.length == 0){
+      alert('Please create a key pair first, and activate it by clicking the lock and confirming the passphrase.');
+      return;
+    }
+
+    var newName = prompt("New File Name");
+    if(!newName){
+      console.debug("aborted");
+      return;
+    }
+
+    if($scope.currentKeyPair === null && confirm("Load First Key Pair?")){
+      $scope.setCurrentKeyPair($scope.keyPairs[0]);
+    }
+
+    $scope.currentGraph = $scope.RS.graphs.create(
+      $scope.currentKeyPair,
+      newName
+    )
+
+    $scope.currentGraph.title = newName;
+    $scope.currentGraph.commands = graph.commands;
+    await $scope.RS.graphs.storeGraph($scope.currentKeyPair, $scope.currentGraph);
+
+    $scope.graphs.push($scope.currentGraph);
+    $scope.$apply();
+
+    return $scope.currentGraph;
+  }
+
+  $scope.downloadGraph = function(graph){
+    var link = document.createElement('a');
+    link.download = `${graph.title}.graph.pgp.txt`;
+
+    var client = $scope.RS.scope('/graphs/');
+    client.getFile(graph.title).then(file => {
+      var blob = new Blob([file.data], { type: file.mimeType });
+      const reader = new FileReader();
+      reader.addEventListener('loadend', async () => {
+        var textData = reader.result;
+
+        var data = `data:text/json;charset=utf-8,${encodeURIComponent(textData)}`;
+        link.href = data;
+
+        link.click();
+      });
+      reader.readAsText(blob);
+    })
+  }
+
+
+  $scope.importGraph = function(){
+    var f = document.querySelector('#graph-upload').files[0];
+    var title = prompt("File Name?")
+    var r = new FileReader();
+
+    r.onload = async function(e){
+      var encrypted = e.target.result;
+      var client = $scope.RS.scope('/graphs/');
+      
+      await client.storeFile('text/plain', title, encrypted);
+
+      $scope.RS.graphs
+      .load(title, $scope.currentKeyPair)
+      .then(graph => {
+        $scope.graphs.push(graph);
+      }, (reason) => {
+        $scope.graphs.push({title, reason})
+      })
+
+      $scope.showGraphUpload = false;
+      $scope.$apply();
+    }
+
+    r.readAsText(f);
+  }
+
   $scope.vertices = [];
   $scope.edges = [];
 

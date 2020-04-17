@@ -64,13 +64,12 @@
                     <input id="key-pair-upload" type="file">
                     <a href="#" ng-click="importKeyPair()">Import</a>
                   </div>
-                  <!-- -->
 
                 </label>
                 <li ng-repeat="keyPair in keyPairs">
                   <a href="#" data-toggle="tooltip" title="Activate Key Pair" ng-if="keyPair && (currentKeyPair != keyPair)" ng-click="setCurrentKeyPair(keyPair)">&#128275;</a>
                   <a href="#" data-toggle="tooltip" title="Deactivate Key Pair" ng-if="keyPair && (currentKeyPair == keyPair)" ng-click="setCurrentKeyPair(null)">&#128274;</a>
-                  <a href="#" data-toggle="tooltip" title="Export Public Key to Device" ng-if="keyPair" ng-click="exportToDevice(keyPair)">↓</a>
+                  <a href="#" data-toggle="tooltip" title="Export Key Pair to Device" ng-if="keyPair" ng-click="exportToDevice(keyPair)">↓</a>
                   <a href="#" data-toggle="tooltip" title="Share Public Key to Web" ng-if="keyPair" ng-click="exportToWeb(keyPair)">→</a>
                   <a href="#" data-toggle="tooltip" title="Delete Key Pair" ng-if="keyPair" ng-click="removeKeyPair(keyPair)">✗</a>
                   {{keyPair.title}}
@@ -103,13 +102,21 @@
                 Graphs
                 <a ng-if="currentKeyPair" href="#" ng-click="createGraph()">+</a>
                 <a ng-if="currentKeyPair" href="#" ng-click="loadGraphs()">↻</a>
+                <a href="#" ng-init="showGraphUpload = false" data-toggle="tooltip" title="Import Graph" ng-click="showGraphUpload = true;">↑</a>
+                  <div ng-show="showGraphUpload">
+                    <input id="graph-upload" type="file">
+                    <a href="#" ng-click="importGraph()">Import</a>
+                  </div>
               </label>
-              <li ng-repeat="graph in graphs">
+              <li ng-repeat="graph in graphs track by $index">
                 <a ng-if="graph" href="#" data-toggle="tooltip" title="Load" ng-click="currentGraph = graph; playGraph(graph);">►</a>
                 <a ng-if="graph" href="#" data-toggle="tooltip" title="Remove Graph" ng-click="removeGraph(graph)">✗</a>
-                
+                <a ng-if="graph" href="#" data-toggle="tooltip" title="Clone Graph" ng-click="cloneGraph(graph)">++</a>
+                <a ng-if="graph" href="#" data-toggle="tooltip" title="Download Graph" ng-click="downloadGraph(graph)">↓</a>
+
                 <i ng-if="graph && (currentGraph == graph)">*</i>
-                {{graph.title}}
+                <span ng-if="!graph.reason">{{graph.title}}</span>
+                <span ng-if="graph.reason"><s>{{graph.title}}</s></span>
               </li>
             </ul>
             

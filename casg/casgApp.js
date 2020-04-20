@@ -1463,19 +1463,20 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
       if(sub_component === undefined){
         sub_component = $scope.Group.all.find(p => p.name == sub_name);
       }
+
+      if(sub_component === undefined){
+        sub_component = $scope.add_person({name: sub_name, color: 0x000000});
+      }
     }catch(e){
       console.error(e);
       return;
     }
 
-    if(sub_component === undefined){
-      sub_component = $scope.add_person({name: sub_name, color: 0x000000});
-    }
 
     try{
-      super_component = $scope.Group.all.find(g => g.name === super_name);
+      super_component = $scope.Group.all.find(g => g.name == super_name);
       if(super_component === undefined){
-        super_component = $scope.Person.all.find(g => g.name === super_name);
+        super_component = $scope.Person.all.find(g => g.name == super_name);
       }
       if(!super_component && super_name){
         super_component = $scope.add_group({name: super_name, color: 0x000000});

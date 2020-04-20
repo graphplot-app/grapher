@@ -116,18 +116,36 @@
 
                 <i ng-if="graph && (currentGraph == graph)">*</i>
                 <span ng-if="!graph.reason">{{graph.title}}</span>
-                <span ng-if="graph.reason"><s>{{graph.title}}</s></span>
+                <span ng-if="graph.reason"><strikethrough>{{graph.title}}</strikethrough></span>
               </li>
             </ul>
             
-            <ul>
+            <ul ng-if="currentGraph">
               <label>Current Graph</label>
               {{Entity.all.length}} Entities
 
-              <li><a ng-if="currentGraph" href="#" ng-click="gatherAndProcess()">Enter Command</a></li>
-              <li ng-if="currentGraph && currentKeyPair"><a href="#" ng-click="saveGraph()">Save</a></li>
+              <li><a href="#" ng-click="gatherAndProcess()">Enter Command</a></li>
+              <li ng-if="currentKeyPair"><a href="#" ng-click="saveGraph()">Save</a></li>
+
+              <label>Commands</label>
+              <li ng-repeat="command in currentGraph.commands track by $index">
+                
+                <a ng-if="command" href="#" data-toggle="tooltip" title="Remove Entity" ng-click="removeCommand($index)">✗</a>
+                {{command}}
+              </li>
 
             </ul>
+
+            <!--
+            <ul ng-if="currentGraph">
+              <label>Entities of Current Graph</label>
+              <li ng-repeat="entity in Entity.all">
+                <a ng-if="entity" href="#" data-toggle="tooltip" title="Remove Entity" ng-click="removeEntity(entity)">✗</a>
+                {{entity.name}} ({{entity.type}})
+              </li>
+            </ul>
+            -->
+
             
             <!--
             <ul>

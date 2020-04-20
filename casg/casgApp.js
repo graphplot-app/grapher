@@ -953,8 +953,10 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
   }
 
   $scope.removeEdge = function(edge){
-    $scope.$fourd.graph.remove_edge(edge.id);
-    delete $scope.edges[$scope.edges.indexOf(edge)]
+    if(edge){
+      $scope.$fourd.graph.remove_edge(edge);
+      delete $scope.edges[$scope.edges.indexOf(edge)]
+    }
   }
 
   $scope.removeGraph = function(graph){
@@ -1123,9 +1125,13 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     });
 
     this.vertex.entity = this;
-    
-    $scope.$fourd.graph.add_edge(this.vertex, this.person.vertex, {directed: true});
-    $scope.$fourd.graph.add_edge(this.group.vertex, this.vertex, {directed: true});
+
+    this.sub_edge = $scope.$fourd.graph.add_edge(this.vertex, this.person.vertex, {directed: true});
+    this.super_edge = $scope.$fourd.graph.add_edge(this.group.vertex, this.vertex, {directed: true});
+
+    person.roles.add(this);
+    group.roles.add(this);
+
 
     return this;
   }
@@ -1294,11 +1300,13 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     });
 
     if(person){
+      [...person.roles].forEach(role => $scope.remove_role(role.id)); // this might be wrong, sociologically speaking... do roles exist after the person has left?
+
       $scope.$fourd.graph.remove_vertex(person.vertex);
       $scope.Person.all.splice(index, 1);
     }
 
-    $scope.Entity.all.splice($scope.Entity.all.findIndex(e => e.id == id));
+    $scope.Entity.all.splice($scope.Entity.all.findIndex(e => e.id == id));    
   };
   
   $scope.add_group = function(info, id_callback){
@@ -1323,7 +1331,9 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     });
 
     if(group){
-      fourd.graph.remove_vertex(group.vertex);
+      [...group.roles].forEach(role => $scope.remove_role(role.id));
+
+      $scope.$fourd.graph.remove_vertex(group.vertex);
       $scope.Group.all.splice(index, 1);
     }
     $scope.Entity.all.splice($scope.Entity.all.findIndex(e => e.id == id));
@@ -1370,6 +1380,9 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
 
     // history
     role.info = {person: person, group: group};
+
+    role.person.roles.add(this);
+    role.group.roles.add(this);
     // history.push({command: 'add_role', info: role.info, id: role.id});
     return role;
   };
@@ -1384,11 +1397,17 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
 
       return false;
     });
-    $scope.$fourd.graph.remove_vertex(role.vertex);
-    $scope.Role.all.splice(index, 1);
-    $scope.Entity.all.splice($scope.Entity.all.findIndex(e => e.id == id));
 
-    return true;
+    if(role){
+      $scope.removeEdge(role.sub_edge);
+      $scope.removeEdge(role.super_edge);
+
+      $scope.$fourd.graph.remove_vertex(role.vertex);
+      $scope.Role.all.splice(index, 1);
+    
+      $scope.Entity.all.splice($scope.Entity.all.findIndex(e => e.id == id));
+      return true;
+    }
   };
 
   var that = this;
@@ -1448,6 +1467,21 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     console.assert(super_component, "After all this work, no super component")
     var role = $scope.add_role({'person': sub_component, 'group': super_component, color: 0x000000});
     
+  }
+
+  $scope.removeEntity = function(entity){
+    if($scope.Person.all.indexOf(entity) > -1){
+      $scope.remove_person(entity.id);
+    }
+
+    if($scope.Group.all.indexOf(entity) > -1){
+      $scope.remove_group(entity.id);
+    }
+  }
+
+  $scope.removeCommand = function(commandIndex){
+    delete $scope.currentGraph[commandIndex];
+    $scope.currentGraph.commands.splice(commandIndex, 1);
   }
 }]);
 

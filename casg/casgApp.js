@@ -974,6 +974,10 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
       return;
     }
 
+    if(!$scope.currentKeyPair){
+      return;
+    }
+
     var c = $scope.RS.scope('/graphs/');
     c.getListing('', false).then(async listing => {
       console.log('listing', listing);
@@ -990,7 +994,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
               resolve(graph);
               return graph;
             }, (reason) => {
-              reject({title: li, reason})
+              resolve({title: li, reason: reason})
             })
           })
         }

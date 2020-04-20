@@ -57,7 +57,7 @@
 
               <ul class="itemList">
                 <label>
-                  Private Keys
+                  (Private) Key Pairs
                   <a href="#" ng-click="generateKeyPair()" data-toggle="tooltip" title="Generate Key Pair">+</a>
                   <a href="#" ng-init="showKeyPairUpload = false" data-toggle="tooltip" title="Import Key Pair" ng-click="showKeyPairUpload = true;">↑</a>
                   <div ng-show="showKeyPairUpload">
@@ -109,14 +109,14 @@
                   </div>
               </label>
               <li ng-repeat="graph in graphs track by $index">
-                <a ng-if="graph" href="#" data-toggle="tooltip" title="Load" ng-click="currentGraph = graph; playGraph(graph);">►</a>
+                <a ng-if="graph && !graph.reason" href="#" data-toggle="tooltip" title="Load" ng-click="currentGraph = graph; playGraph(graph);">►</a>
                 <a ng-if="graph" href="#" data-toggle="tooltip" title="Remove Graph" ng-click="removeGraph(graph)">✗</a>
-                <a ng-if="graph" href="#" data-toggle="tooltip" title="Clone Graph" ng-click="cloneGraph(graph)">++</a>
+                <a ng-if="graph && !graph.reason" href="#" data-toggle="tooltip" title="Clone Graph" ng-click="cloneGraph(graph)">++</a>
                 <a ng-if="graph" href="#" data-toggle="tooltip" title="Download Graph" ng-click="downloadGraph(graph)">↓</a>
 
                 <i ng-if="graph && (currentGraph == graph)">*</i>
                 <span ng-if="!graph.reason">{{graph.title}}</span>
-                <span ng-if="graph.reason"><strikethrough>{{graph.title}}</strikethrough></span>
+                <span ng-if="graph.reason"><strike>{{graph.title}}</strike></span>
               </li>
             </ul>
             
@@ -124,7 +124,7 @@
               <label>Current Graph</label>
               {{Entity.all.length}} Entities
 
-              <li><a href="#" ng-click="gatherAndProcess()">Enter Command</a></li>
+              <li><a href="#" target="_self" ng-click="gatherAndProcess()">Enter Command</a></li>
               <li ng-if="currentKeyPair"><a href="#" ng-click="saveGraph()">Save</a></li>
 
               <label>Commands</label>

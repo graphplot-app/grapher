@@ -521,7 +521,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     }
     $scope.$apply();
 
-    // $scope.loadGraphs();
+    $scope.loadGraphs();
   }
 
   $scope.RS = new RemoteStorage({
@@ -921,24 +921,24 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     return vertex;
   }
 
-  $scope.addEdge = function(){
-    var source = prompt('Source ID?');
-    if(!source){
-      console.debug('aborted');
-      return;
+  $scope.addEdge = function(source=null, target=null){
+    if(source === null){
+      var source = prompt('Source ID?');
+      if(!source){
+        console.debug('aborted');
+        return;
+      }
     }
 
-    var target = prompt('Target ID?');
-    if(!target){
-      console.debug('aborted');
-      return;
+    if(target === null){
+      var target = prompt('Target ID?');
+      if(!target){
+        console.debug('aborted');
+        return;
+      }
     }
 
-    var edge = $scope.$fourd.graph.add_edge(
-      $scope.vertices[parseInt(source)], 
-      $scope.vertices[parseInt(target)], 
-      {directed: false, color: 0x000000}
-    );
+    var edge = $scope.$fourd.graph.add_edge(source, target, {directed: true});
 
     edge.title = `(${source}, ${target})`;
 
@@ -960,11 +960,15 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
   }
 
   $scope.removeGraph = function(graph){
-    graph.remove();
+    var client = $scope.RS.scope('/graphs/');
+    client.remove(graph.title)
+    
     if(graph == $scope.currentGraph){
       $scope.currentGraph = null;
       delete $scope.graphs[$scope.graphs.indexOf(graph)];
     }
+
+    $scope.$apply();
   }
 
   $scope.loadGraphs = async function(){
@@ -1423,23 +1427,36 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
       }
     }
 
-    var parts = input.split('@');
+    var grammar = /^(.+)|(.+)((\> | \@ | \<) .+)?$/g;
+    var command = input.match(grammar)[0];
 
-    if(parts.length == 1){
-      $scope.add_person({name: parts[0], color: 0x000000});
-      return;
+    var parts;
+    if(command.indexOf('@') > -1){
+      parts = command.split('@');
+    }else if(command.indexOf('>') > -1){
+      parts = command.split('>');
+    }else if(command.indexOf('<') > -1){
+      parts = command.split('<');
+    }else{
+      parts = [command];
     }
 
-    var sub_name = parts[0];
+    console.log('parts', parts);
 
-    if(parts.length < 2){
+    var components = [];
+
+      var first = $scope.add_person({name: parts[0], color: 0x000000});
+      var sub_name = parts[0];
+
+    if(parts.length == 1){
       return;
     }
 
     var super_name = parts[1];
 
-    var sub_component, super_component;
+    var sub_component = first, super_component;
 
+    
     // search persons, then groups
     try{
       sub_component = $scope.Person.all.find(p => p.name == sub_name);
@@ -1467,9 +1484,20 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
       console.error(e);
     }
 
-    console.assert(sub_component, "After all this work, no sub component");
-    console.assert(super_component, "After all this work, no super component")
-    var role = $scope.add_role({'person': sub_component, 'group': super_component, color: 0x000000});
+    if(command.indexOf('@') > -1){
+      /* Role Syntax */   
+      var role = $scope.add_role({'person': sub_component, 'group': super_component, color: 0x000000});
+    }
+
+    if(command.indexOf('>') > -1){
+      $scope.$fourd.graph.add_edge(sub_component.vertex, super_component.vertex, {directed: true});
+    }
+
+    if(command.indexOf('<') > -1){
+      $scope.$fourd.graph.add_edge(super_component.vertex, sub_component.vertex, {directed: true});
+    }
+
+    // this is an english error
     
   }
 
@@ -1487,5 +1515,6 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     delete $scope.currentGraph[commandIndex];
     $scope.currentGraph.commands.splice(commandIndex, 1);
   }
+
 }]);
 

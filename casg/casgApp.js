@@ -230,6 +230,7 @@ var OwnPublicKeys = {
           return await new Promise((resolve, reject) => {  
             client.getAll('', false).then(objects => resolve(Object.keys(objects).map((key) => {
               this._augment(objects[key], key);
+              objects[key].publicUrl = client.getItemURL(key);
               return objects[key];
             })))
           });
@@ -251,15 +252,18 @@ var OwnPublicKeys = {
             publicKeyArmored: keyPair.publicKeyArmored
           };
 
-          client.storeObject('casg-ownpublickey', path, publicKey)
-        
-          var url = client.getItemURL(path);
-          keyPair.publicUrl = url;
+          return new Promise((resolve, reject) => {  
+            client.storeObject('casg-ownpublickey', path, publicKey).then(() => {
 
-          this._augment(publicKey, path);
-          client.storeObject('casg-ownpublickey', path, publicKey);
-
-          return publicKey;
+              var url = client.getItemURL(path);
+              keyPair.publicUrl = url;
+    
+              this._augment(publicKey, path);
+              publicKey.publicUrl = url;
+              client.storeObject('casg-ownpublickey', path, publicKey);
+              resolve(publicKey);
+            })
+          })
         },
 
         _augmentIO: function(lio, li){

@@ -66,7 +66,7 @@
                   </div>
 
                 </label>
-                <li ng-repeat="keyPair in keyPairs">
+                <li ng-repeat="keyPair in keyPairs track by $index">
                   <a href="#" data-toggle="tooltip" title="Activate Key Pair" ng-if="keyPair && (currentKeyPair != keyPair)" ng-click="setCurrentKeyPair(keyPair)">&#128275;</a>
                   <a href="#" data-toggle="tooltip" title="Deactivate Key Pair" ng-if="keyPair && (currentKeyPair == keyPair)" ng-click="setCurrentKeyPair(null)">&#128274;</a>
                   <a href="#" data-toggle="tooltip" title="Export Key Pair to Device" ng-if="keyPair" ng-click="exportToDevice(keyPair)">↓</a>
@@ -78,7 +78,7 @@
 
               <ul>
                 <label>Own Public Keys</label>
-                <li ng-repeat="publicKey in ownPublicKeys">
+                <li ng-repeat="publicKey in ownPublicKeys track by $index">
                   <a href="#" data-toggle="tooltip" title="Delete Public Key Listing" ng-if="publicKey" ng-click="removePublicKeyListing(publicKey)">✗</a>
                   <a target="_blank" data-toggle="tooltip" title="Link for Public Key Listing" ng-href="{{publicKey.publicUrl}}">{{publicKey.title}}</a>
                 </li>

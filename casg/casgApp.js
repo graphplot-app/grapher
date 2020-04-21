@@ -1443,19 +1443,16 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     }
 
     console.log('parts', parts);
-
-    var components = [];
-
-      var first = $scope.add_person({name: parts[0], color: 0x000000});
-      var sub_name = parts[0];
+  
+    var sub_name = parts[0];
 
     if(parts.length == 1){
       return;
     }
 
     var super_name = parts[1];
-
-    var sub_component = first, super_component;
+    var sub_component;
+    var super_component;
 
     
     // search persons, then groups

@@ -216,6 +216,9 @@ var OwnPublicKeys = {
         },
         'publicKeyArmored': {
           'type': 'string'
+        },
+        'publicUrl': {
+          'type': 'string'
         }
       },
       'required': ['title', 'publicKeyArmored']
@@ -254,6 +257,7 @@ var OwnPublicKeys = {
           keyPair.publicUrl = url;
 
           this._augment(publicKey, path);
+          client.storeObject('casg-ownpublickey', path, publicKey);
 
           return publicKey;
         },
@@ -1015,8 +1019,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
 
   $scope.gatherAndProcess = function(){
 
-    var commandPrompt = `Command: \n
-    Either "Entity" or "SubEntity@SuperEntity"`;
+    var commandPrompt = `Command:`;
 
     var command = prompt(commandPrompt);
     if(command){

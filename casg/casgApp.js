@@ -1094,35 +1094,35 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
       $scope.Role.all = [this];
     }
     
-    switch(typeof info.person){
+    switch(typeof info.sub){
       case 'number':
-        this.person = $scope.Entity.all.find(p => p.id == info.person);
+        this.sub = $scope.Entity.all.find(p => p.id == info.sub);
         break;
       case 'string':
-        this.person = $scope.Entity.all.find(p => p.name == info.person);
+        this.sub = $scope.Entity.all.find(p => p.name == info.sub);
         break;
       case 'object':
-        this.person = info.person;
+        this.sub = info.sub;
         break;
       default:
-        this.person = info.person;
+        this.sub = info.sub;
     }
 
-    switch(typeof info.group){
+    switch(typeof info.super){
       case 'number':
-        this.group = $scope.Entity.all.find(e => e.id == info.group);
+        this.super = $scope.Entity.all.find(e => e.id == info.super);
         break;
       case 'string':
-        this.group = $scope.Entity.all.find(e => e.name == info.group);
+        this.super = $scope.Entity.all.find(e => e.name == info.super);
         break;
       case 'object':
-        this.group = info.group;
+        this.super = info.super;
         break;
       default:
-        this.group = info.group;
+        this.super = info.super;
     }
 
-    this.name = !info.name ? info.name : `${this.person.name}@${this.group.name}`;
+    this.name = `${this.sub.name}@${this.super.name}`;
     this.from = new Date(info.from);
     this.until = new Date(info.until);
     this.texture = info.texture;
@@ -1134,11 +1134,11 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
 
     this.vertex.entity = this;
 
-    this.sub_edge = $scope.$fourd.graph.add_edge(this.vertex, this.person.vertex, {directed: true});
-    this.super_edge = $scope.$fourd.graph.add_edge(this.group.vertex, this.vertex, {directed: true});
+    this.sub_edge = $scope.$fourd.graph.add_edge(this.vertex, this.sub.vertex, {directed: true});
+    this.super_edge = $scope.$fourd.graph.add_edge(this.super.vertex, this.vertex, {directed: true});
 
-    person.roles.add(this);
-    group.roles.add(this);
+    this.sub.roles.add(this);
+    this.super.roles.add(this);
 
 
     return this;
@@ -1148,8 +1148,8 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
   $scope.Role.prototype.toJSON = function(){
     return {
       id: this.id,
-      person: this.person.id,
-      group: this.group.id,
+      sub: this.sub.id,
+      super: this.super.id,
       name: this.name,
       from: this.from.to_normal(),
       until: this.until.to_normal(),
@@ -1349,37 +1349,38 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
 
   $scope.add_role = function(info, id_callback){
       
-    console.assert(info.person !== undefined, 'info.person must be defined');
-    console.assert(info.group !== undefined, 'info.group must be defined');
+    console.assert(info.sub !== undefined, 'info.sub must be defined');
+    console.assert(info.super !== undefined, 'info.super must be defined');
     console.log(info)
-    switch(typeof info.person){
+
+    switch(typeof info.sub){
       case 'number':
-        info.person = $scope.Entity.all.find(p => p.id == info.person);
+        info.sub = $scope.Entity.all.find(p => p.id == info.sub);
         break;
 
       case 'string':
-        info.person = $scope.Entity.all.find(p => p.name == info.person);
+        info.sub = $scope.Entity.all.find(p => p.name == info.sub);
         break;
 
       case 'object':
-        if(!info.person.vertex){
-          info.person = this.add_person(info.person);
+        if(!info.sub.vertex){
+          info.sub = this.add_person(info.sub);
         }
         break;
     }
 
-    switch(typeof info.group){
+    switch(typeof info.super){
       case 'number':
-        info.group = $scope.Entity.all.find(e => e.id == info.group);
+        info.super = $scope.Entity.all.find(e => e.id == info.super);
         break;
 
       case 'string':
-        info.group = $scope.Entity.all.find(g => g.name == info.group);
+        info.super = $scope.Entity.all.find(g => g.name == info.super);
         break;
 
       case 'object':
-        if(!info.group.vertex){
-          info.group = $scope.add_group(info.group);
+        if(!info.super.vertex){
+          info.group = $scope.add_person(info.super);
         }
     }
 
@@ -1387,10 +1388,10 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     if(typeof id_callback == 'function') id_callback(role.id);
 
     // history
-    role.info = {person: person, group: group};
+    role.info = {sub: person, super: group};
 
-    role.person.roles.add(this);
-    role.group.roles.add(this);
+    role.sub.roles.add(this);
+    role.super.roles.add(this);
     // history.push({command: 'add_role', info: role.info, id: role.id});
     return role;
   };
@@ -1421,7 +1422,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
   var that = this;
   $scope.process = function(input){
     if(!input){
-      input = prompt("Input");
+      input = prompt("Input").toString();
       if(!input){
         return;
       }
@@ -1460,9 +1461,6 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     // search persons, then groups
     try{
       sub_component = $scope.Person.all.find(p => p.name == sub_name);
-      if(sub_component === undefined){
-        sub_component = $scope.Group.all.find(p => p.name == sub_name);
-      }
 
       if(sub_component === undefined){
         sub_component = $scope.add_person({name: sub_name, color: 0x000000});
@@ -1474,12 +1472,12 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
 
 
     try{
-      super_component = $scope.Group.all.find(g => g.name == super_name);
+      super_component = $scope.Person.all.find(g => g.name == super_name);
       if(super_component === undefined){
         super_component = $scope.Person.all.find(g => g.name == super_name);
       }
-      if(!super_component && super_name){
-        super_component = $scope.add_group({name: super_name, color: 0x000000});
+      if(super_component === undefined && super_name){
+        super_component = $scope.add_person({name: super_name, color: 0x000000});
       }
     }catch(e){
       console.error(e);
@@ -1487,7 +1485,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
 
     if(command.indexOf('@') > -1){
       /* Role Syntax */   
-      var role = $scope.add_role({'person': sub_component, 'group': super_component, color: 0x000000});
+      var role = $scope.add_role({'sub': sub_component, 'super': super_component, color: 0x000000});
     }
 
     if(command.indexOf('>') > -1){

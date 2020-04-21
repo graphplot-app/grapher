@@ -1383,7 +1383,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
 
       case 'object':
         if(!info.super.vertex){
-          info.group = $scope.add_person(info.super);
+          info.super = $scope.add_person(info.super);
         }
     }
 

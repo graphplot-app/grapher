@@ -79,8 +79,8 @@
               <ul>
                 <label>Own Public Keys</label>
                 <li ng-repeat="publicKey in ownPublicKeys track by $index">
-                  <a href="#" data-toggle="tooltip" title="Delete Public Key Listing" ng-if="publicKey" ng-click="removePublicKeyListing(publicKey)">✗</a>
-                  <a target="_blank" data-toggle="tooltip" title="Link for Public Key Listing" ng-href="{{publicKey.publicUrl}}">{{publicKey.title}}</a>
+                  <a href="#" data-toggle="tooltip" title="Delete Public Key Listing" ng-if="publicKey.publicUrl" ng-click="removePublicKeyListing(publicKey)">✗</a>
+                  <a target="_blank" data-toggle="tooltip" title="Link for Public Key Listing" ng-href="publicKey.publicUrl">{{publicKey.title}}</a>
                 </li>
               </ul>
 

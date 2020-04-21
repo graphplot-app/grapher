@@ -1447,6 +1447,7 @@ var MainCtrl = casgApp.controller('MainCtrl', ['$scope', '$http', '$location', a
     var sub_name = parts[0];
 
     if(parts.length == 1){
+      $scope.add_person({name: parts[0], color: 0x000000})
       return;
     }
 

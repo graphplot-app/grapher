@@ -43,21 +43,6 @@
 
           <div class="menu">
             <ul>
-              <li>Sorry, I lost the manual... here's the rundown:</li>
-              <li>All data is saved to your browser, if you don't sign in to RemoteStorage.js.</li>
-              <li>Create a keypair. (Name, email address, password)</li>
-              <li>Create a graph. (Name)</li>
-              <li>Create a vertex: Hello</li>
-              <li>Create another vertex: World</li>
-              <li>Create an edge:
-                <ul>
-                  <li>An edge from 1 to 2: Hello&lt;World</li>
-                  <li>An edge from 2 to 1: Hello&gt;World</li>
-                  <li>An edge from 1 to 2, with an intermediary: Hello@World</li>
-                </ul>
-              </li>
-            </ul>
-            <ul>
               <label>Storage Management</label>
               <li><a ng-if="RS.remote.userAddress" ng-href="#" ng-click="configureStorage();">{{RS.remote.userAddress}}</a></li>
               <li><a ng-if="!RS.remote.userAddress" href="#" ng-click="configureStorage()">Configure RemoteStorage</a></li>
@@ -188,6 +173,22 @@
             </ul>
             -->
 
+            <ul>
+              <li>Sorry, I lost the manual... here's the rundown:</li>
+              <li>All data is saved to your browser, if you don't sign in to RemoteStorage.js.</li>
+              <li>Create a keypair. (Name, email address, password)</li>
+              <li>Create a graph. (Name)</li>
+              <li>Create a vertex: Hello</li>
+              <li>Create another vertex: World</li>
+              <li>Create an edge:
+                <ul>
+                  <li>An edge from 1 to 2: Hello&lt;World</li>
+                  <li>An edge from 2 to 1: Hello&gt;World</li>
+                  <li>An edge from 1 to 2, with an intermediary: Hello@World</li>
+                </ul>
+              </li>
+            </ul>
+
           </div>
         </nav>
 
@@ -198,12 +199,13 @@
             <canvas id="canvas" class="w-100 h-100"></canvas>
           </div>
 
-        </dic>
+        </div>
 
         <!--
         <ng-view class="col-sm-9 v-100 h-100"></ng-view>>
         -->
       </div>
+      
     </div>
 
 
